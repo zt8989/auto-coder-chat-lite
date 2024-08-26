@@ -281,7 +281,7 @@ def coding(query):
         print(f"Error: {template_path} does not exist.")
         return
 
-    with open(template_path, "r") as template_file:
+    with open(template_path, "r", encoding='utf-8') as template_file:
         template = template_file.read()
 
     replaced_template = template.format(
