@@ -1,0 +1,3 @@
+[submodule "thirdparty/auto-coder"]
+	path = thirdparty/auto-coder
+	url = https://github.com/allwefantasy/auto-coder
