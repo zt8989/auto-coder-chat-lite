@@ -93,7 +93,7 @@ def generate_file_tree(root_dir, indent_char='|   ', last_char='|-- ', level_cha
     file_tree = []
     gitignore_path = os.path.join(root_dir, '.gitignore')
     if os.path.exists(gitignore_path):
-        with open(gitignore_path, 'r') as f:
+        with open(gitignore_path, 'r', encoding='utf-8') as f:
             gitignore_content = f.read()
         spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_content.splitlines())
     else:
@@ -211,14 +211,14 @@ class CommandCompleter(Completer):
 completer = CommandCompleter(commands)
 
 def save_memory():
-    with open(os.path.join(".auto-coder-chat-lite", "memory.json"), "w") as f:
+    with open(os.path.join(".auto-coder-chat-lite", "memory.json"), "w", encoding='utf-8') as f:
         json.dump(memory, f, indent=2, ensure_ascii=False)
 
 def load_memory():
     global memory
     memory_path = os.path.join(".auto-coder-chat-lite", "memory.json")
     if os.path.exists(memory_path):
-        with open(memory_path, "r") as f:
+        with open(memory_path, "r", encoding='utf-8') as f:
             memory = json.load(f)
     completer.update_current_files(memory["current_files"]["files"])
 
@@ -291,7 +291,7 @@ def coding(query):
         query=query
     )
 
-    with open("output.txt", "w") as output_file:
+    with open("output.txt", "w", encoding='utf-8') as output_file:
         output_file.write(replaced_template)
 
     try:
@@ -357,7 +357,7 @@ def init_project():
     
     if not os.path.exists(project_dir):
         os.makedirs(project_dir)
-        with open(memory_file, "w") as f:
+        with open(memory_file, "w", encoding='utf-8') as f:
             json.dump({"current_files": {"files": []}, "conf": {}}, f, indent=2, ensure_ascii=False)
         print(f"Created directory {project_dir} and initialized {memory_file}")
 
