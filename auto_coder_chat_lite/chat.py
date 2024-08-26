@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import sys
@@ -12,11 +13,17 @@ from prompt_toolkit.completion import WordCompleter, Completer, Completion
 from rich.console import Console
 from rich.table import Table
 
-# 模拟内存存储
 memory = {
-    "current_files": {"files": []},
+    "conversation": [],
+    "current_files": {"files": [], "groups": {}},
     "conf": {},
+    "exclude_dirs": [],
+    "mode": "normal",  # 新增mode字段,默认为normal模式
 }
+
+base_persist_dir = os.path.join(".auto-coder", "plugins", "chat-auto-coder")
+
+defaut_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
 
 commands = [
     "/add_files",
@@ -37,12 +44,39 @@ def get_all_file_names_in_project() -> List[str]:
 def find_files_in_project(patterns: List[str]) -> List[str]:
     project_root = os.getcwd()
     matched_files = []
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+
     for pattern in patterns:
-        for root, dirs, files in os.walk(project_root):
-            for file in files:
-                if file.startswith(pattern):
-                    matched_files.append(os.path.join(root, file))
-    return matched_files
+        if "*" in pattern or "?" in pattern:
+            for file_path in glob.glob(pattern, recursive=True):
+                if os.path.isfile(file_path):
+                    abs_path = os.path.abspath(file_path)
+                    if not any(
+                        exclude_dir in abs_path.split(os.sep)
+                        for exclude_dir in final_exclude_dirs
+                    ):
+                        matched_files.append(abs_path)
+        else:
+            is_added = False
+            ## add files belongs to project
+            for root, dirs, files in os.walk(project_root):
+                dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
+                if pattern in files:
+                    matched_files.append(os.path.join(root, pattern))
+                    is_added = True
+                else:
+                    for file in files:
+                        _pattern = os.path.abspath(pattern)
+                        if _pattern in os.path.join(root, file):
+                            matched_files.append(os.path.join(root, file))
+                            is_added = True
+            ## add files not belongs to project
+            if not is_added:
+                matched_files.append(pattern)
+
+    return list(set(matched_files))
+
+
 
 class CommandCompleter(Completer):
     def __init__(self, commands):
