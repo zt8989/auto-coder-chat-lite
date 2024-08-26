@@ -99,11 +99,13 @@ def generate_file_tree(root_dir, indent_char='|   ', last_char='|-- ', level_cha
     else:
         spec = PathSpec()
 
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+
     def list_files(start_path, prefix=''):
         files = os.listdir(start_path)
         for i, file_name in enumerate(files):
             full_path = os.path.join(start_path, file_name)
-            if spec.match_file(full_path):
+            if spec.match_file(full_path) or any(exclude_dir in full_path for exclude_dir in final_exclude_dirs):
                 continue
             is_last = i == len(files) - 1
             if is_last:
@@ -270,7 +272,7 @@ def coding(query):
     project_root = os.getcwd()
     files = generate_file_tree(project_root)
     files_code = "\n".join(
-        [f"##File: {file}\n{open(file).read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
+        [f"##File: {file}\n{open(file, encoding='utf-8').read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
 
     current_file_path = os.path.abspath(__file__)
