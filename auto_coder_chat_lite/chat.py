@@ -34,6 +34,7 @@ commands = [
     "/coding",
     "/help",
     "/exit",
+    "/exclude_dirs",
 ]
 
 def get_all_file_names_in_project() -> List[str]:
@@ -137,6 +138,11 @@ class CommandCompleter(Completer):
                 for file_name in self.current_file_names:
                     if file_name.startswith(current_word):
                         yield Completion(file_name, start_position=-len(current_word))
+            elif words[0] == "/exclude_dirs":
+                current_word = words[-1]
+                for dir_name in self.all_dir_names:
+                    if dir_name.startswith(current_word):
+                        yield Completion(dir_name, start_position=-len(current_word))
             else:
                 for command in self.commands:
                     if command.startswith(text):
@@ -300,6 +306,9 @@ def main():
                     print("Please enter your request.")
                 else:
                     coding(query)
+            elif user_input.startswith("/exclude_dirs"):
+                dir_names = user_input[len("/exclude_dirs") :].strip().split()
+                exclude_dirs(dir_names)
             elif user_input.startswith("/help"):
                 show_help()
             elif user_input.startswith("/exit"):
