@@ -64,7 +64,7 @@ class TestCodeAutoMergeEditBlock(unittest.TestCase):
             f.write(initial_content)
         
         # Run the merge_code function
-        self.code_auto_merge_editblock.merge_code(content, force_skip_git=True)
+        self.code_auto_merge_editblock.merge_code(content)
         
         # Verify the file content has been updated
         with open(self.file_path, "r") as f:

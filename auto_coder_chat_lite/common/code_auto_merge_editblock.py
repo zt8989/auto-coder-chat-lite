@@ -1,5 +1,5 @@
 import os
-from auto_coder_chat_lite.common import AutoCoderArgs, git_utils
+from auto_coder_chat_lite.common import AutoCoderArgs
 from auto_coder_chat_lite.common.text import TextSimilarity
 from auto_coder_chat_lite.utils.queue_communicate import (
     queue_communicate,
@@ -199,16 +199,6 @@ class CodeAutoMergeEditBlock:
                         f"Pylint check failed for {file_path}. Changes not applied. Error: {error_message}"
                     )
 
-        if changes_made and not force_skip_git:
-            try:
-                git_utils.commit_changes(
-                    self.args.source_dir, f"auto_coder_pre_{file_name}_{md5}"
-                )
-            except Exception as e:
-                logger.error(
-                    self.git_require_msg(source_dir=self.args.source_dir, error=str(e))
-                )
-                return
         # Now, apply the changes
         for file_path, new_content in file_content_mapping.items():
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -236,18 +226,6 @@ class CodeAutoMergeEditBlock:
             )
 
         if changes_made:
-            if not force_skip_git:
-                try:
-                    commit_result = git_utils.commit_changes(
-                        self.args.source_dir, f"auto_coder_{file_name}_{md5}"
-                    )
-                    git_utils.print_commit_info(commit_result=commit_result)
-                except Exception as e:
-                    logger.error(
-                        self.git_require_msg(
-                            source_dir=self.args.source_dir, error=str(e)
-                        )
-                    )
             logger.info(
                 f"Merged changes in {len(file_content_mapping.keys())} files {len(changes_to_make)}/{len(codes)} blocks."
             )
