@@ -1,19 +1,19 @@
 import glob
 import json
 import os
-import sys
 from typing import List
-from prompt_toolkit import PromptSession
+from prompt_toolkit import PromptSession, prompt
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.styles import Style
 from prompt_toolkit.formatted_text import FormattedText
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.completion import WordCompleter, Completer, Completion
+from prompt_toolkit.completion import Completer, Completion
 from rich.console import Console
 from rich.table import Table
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
+
+from auto_coder_chat_lite.common import AutoCoderArgs
+from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
 
 memory = {
     "conversation": [],
@@ -36,6 +36,49 @@ commands = [
     "/exit",
     "/exclude_dirs",
 ]
+
+def get_all_file_names_in_project() -> List[str]:
+    project_root = os.getcwd()
+    file_names = []
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    for root, dirs, files in os.walk(project_root):
+        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
+        file_names.extend(files)
+    return file_names
+
+
+def get_all_file_in_project() -> List[str]:
+    project_root = os.getcwd()
+    file_names = []
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    for root, dirs, files in os.walk(project_root):
+        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
+        for file in files:
+            file_names.append(os.path.join(root, file))
+    return file_names
+
+
+def get_all_file_in_project_with_dot() -> List[str]:
+    project_root = os.getcwd()
+    file_names = []
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    for root, dirs, files in os.walk(project_root):
+        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
+        for file in files:
+            file_names.append(os.path.join(root, file).replace(project_root, "."))
+    return file_names
+
+
+def get_all_dir_names_in_project() -> List[str]:
+    project_root = os.getcwd()
+    dir_names = []
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    for root, dirs, files in os.walk(project_root):
+        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
+        for dir in dirs:
+            dir_names.append(dir)
+    return dir_names
+
 
 def get_all_file_names_in_project() -> List[str]:
     project_root = os.getcwd()
@@ -121,6 +164,9 @@ class CommandCompleter(Completer):
     def __init__(self, commands):
         self.commands = commands
         self.all_file_names = get_all_file_names_in_project()
+        self.all_files = get_all_file_in_project()
+        self.all_dir_names = get_all_dir_names_in_project()
+        self.all_files_with_dot = get_all_file_in_project_with_dot()
         self.current_file_names = []
 
     def get_completions(self, document, complete_event):
@@ -155,6 +201,13 @@ class CommandCompleter(Completer):
     def update_current_files(self, files):
         self.current_file_names = [os.path.basename(f) for f in files]
 
+    def refresh_files(self):
+        self.all_file_names = get_all_file_names_in_project()
+        self.all_files = get_all_file_in_project()
+        self.all_dir_names = get_all_dir_names_in_project()
+        self.all_files_with_dot = get_all_file_in_project_with_dot()
+        # self.symbol_list = get_symbol_list()
+
 completer = CommandCompleter(commands)
 
 def save_memory():
@@ -182,12 +235,17 @@ def add_files(args: List[str]):
     save_memory()
 
 def remove_files(file_names: List[str]):
-    removed_files = []
-    for file in memory["current_files"]["files"]:
-        if os.path.basename(file) in file_names:
-            removed_files.append(file)
-    for file in removed_files:
-        memory["current_files"]["files"].remove(file)
+    if "/all" in file_names:
+        removed_files = memory["current_files"]["files"].copy()
+        memory["current_files"]["files"] = []
+    else:
+        removed_files = []
+        for pattern in file_names:
+            matched_files = find_files_in_project([pattern])
+            for file in matched_files:
+                if file in memory["current_files"]["files"]:
+                    removed_files.append(file)
+                    memory["current_files"]["files"].remove(file)
     if removed_files:
         print(f"Removed files: {removed_files}")
     else:
@@ -201,7 +259,8 @@ def list_files():
         table = Table(title="Current Files")
         table.add_column("File", style="cyan")
         for file in current_files:
-            table.add_row(os.path.basename(file))
+            relative_path = os.path.relpath(file, os.getcwd())
+            table.add_row(relative_path)
         console = Console()
         console.print(table)
     else:
@@ -209,7 +268,7 @@ def list_files():
 
 def coding(query):
     project_root = os.getcwd()
-    files = "\n".join(generate_file_tree(project_root))
+    files = generate_file_tree(project_root)
     files_code = "\n".join(
         [f"##File: {file}\n{open(file).read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
@@ -244,15 +303,39 @@ def coding(query):
     print("Coding request processed and output saved to output.txt.")
 
     # 使用Console接收用户输入
-    console = Console()
-    user_input = console.input("请输入要合并的代码块: ")
+    lines = []
+    while True:
+        line = prompt(FormattedText([("#00FF00", "> ")]), multiline=False)
+        line_lower = line.strip().lower()
+        if line_lower in ["eof", "/eof"]:
+            break
+        elif line_lower in ["/clear"]:
+            lines = []
+            print("\033[2J\033[H")  # Clear terminal screen
+            continue
+        elif line_lower in ["/break"]:
+            raise Exception("User requested to break the operation.")
+        lines.append(line)
 
-    # 调用merge_code方法
-    from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
-    from auto_coder_chat_lite.common import AutoCoderArgs
+    result = "\n".join(lines)
+
     args = AutoCoderArgs(file="output.txt", source_dir=project_root, editblock_similarity=0.8)
     code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
-    code_auto_merge_editblock.merge_code(user_input)
+    code_auto_merge_editblock.merge_code(result)
+
+def exclude_dirs(dir_names: List[str]):
+    new_dirs = dir_names
+    existing_dirs = memory.get("exclude_dirs", [])
+    dirs_to_add = [d for d in new_dirs if d not in existing_dirs]
+    if dirs_to_add:
+        existing_dirs.extend(dirs_to_add)
+        if "exclude_dirs" not in memory:
+            memory["exclude_dirs"] = existing_dirs
+        print(f"Added exclude dirs: {dirs_to_add}")
+    else:
+        print("All specified dirs are already in the exclude list.")
+    save_memory()
+    completer.refresh_files()
 
 def show_help():
     print("Supported commands:")
@@ -264,6 +347,11 @@ def show_help():
     print("  /exit - Exit the program")
 
 def init_project():
+    """
+    初始化项目目录和内存文件。
+    
+    如果项目目录不存在，则创建该目录并初始化内存文件。
+    """
     project_dir = ".auto-coder-chat-lite"
     memory_file = os.path.join(project_dir, "memory.json")
     

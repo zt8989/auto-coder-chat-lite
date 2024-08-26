@@ -1,5 +1,14 @@
 
+# Python
 __pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Existing ignores
 *.pyc
 *.pyo
 *.pyd
@@ -8,6 +17,8 @@ __pycache__/
 *.log
 venv/
 
+# Project-specific
 .auto-coder/
+.auto-coder-chat-lite/
 actions/
 output.txt
