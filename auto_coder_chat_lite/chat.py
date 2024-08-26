@@ -138,7 +138,18 @@ def show_help():
     print("  /help - Show this help message")
     print("  /exit - Exit the program")
 
+def init_project():
+    project_dir = ".auto-coder-chat-lite"
+    memory_file = os.path.join(project_dir, "memory.json")
+    
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+        with open(memory_file, "w") as f:
+            json.dump({"current_files": {"files": []}, "conf": {}}, f, indent=2, ensure_ascii=False)
+        print(f"Created directory {project_dir} and initialized {memory_file}")
+
 def main():
+    init_project()
     load_memory()
 
     session = PromptSession(
