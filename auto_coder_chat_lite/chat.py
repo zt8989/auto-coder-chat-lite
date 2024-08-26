@@ -151,17 +151,33 @@ def remove_files(file_names: List[str]):
     completer.update_current_files(memory["current_files"]["files"])
     save_memory()
 
-def list_files():
-    current_files = memory["current_files"]["files"]
-    if current_files:
-        table = Table(title="Current Files")
-        table.add_column("File", style="cyan")
-        for file in current_files:
-            table.add_row(os.path.basename(file))
-        console = Console()
-        console.print(table)
-    else:
-        print("No files in the current session.")
+def coding(query):
+    project_root = os.getcwd()
+    files = "\n".join(get_all_file_names_in_project())
+    files_code = "\n".join(
+        [f"##File: {file}\n{open(file).read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
+    )
+
+    with open("template.txt", "r") as template_file:
+        template = template_file.read()
+
+    replaced_template = template.format(
+        project_root=project_root,
+        files=files,
+        files_code=files_code,
+        query=query
+    )
+
+    with open("output.txt", "w") as output_file:
+        output_file.write(replaced_template)
+
+    try:
+        import pyperclip
+        pyperclip.copy(replaced_template)
+    except ImportError:
+        print("pyperclip not installed, unable to copy to clipboard.")
+
+    print("Coding request processed and output saved to output.txt.")
 
 def show_help():
     print("Supported commands:")
@@ -214,7 +230,7 @@ def main():
                 if not query:
                     print("Please enter your request.")
                 else:
-                    print("Coding request received:", query)
+                    coding(query)
             elif user_input.startswith("/help"):
                 show_help()
             elif user_input.startswith("/exit"):
