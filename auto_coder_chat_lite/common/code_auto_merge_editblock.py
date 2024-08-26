@@ -1,7 +1,7 @@
 import os
-from autocoder.common import AutoCoderArgs, git_utils
-from autocoder.common.text import TextSimilarity
-from autocoder.utils.queue_communicate import (
+from auto_coder_chat_lite.common import AutoCoderArgs, git_utils
+from auto_coder_chat_lite.common.text import TextSimilarity
+from auto_coder_chat_lite.utils.queue_communicate import (
     queue_communicate,
     CommunicateEvent,
     CommunicateEventType,
