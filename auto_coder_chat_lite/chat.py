@@ -203,7 +203,7 @@ def list_files():
 
 def coding(query):
     project_root = os.getcwd()
-    files = "\n".join(get_all_file_names_in_project())
+    files = "\n".join(generate_file_tree(project_root))
     files_code = "\n".join(
         [f"##File: {file}\n{open(file).read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
