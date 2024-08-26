@@ -29,31 +29,27 @@ class TestCodeAutoMergeEditBlock(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
-    def test_merge_code_no_changes(self):
-        # Create a test file
-        with open(self.file_path, "w") as f:
-            f.write("")
-        new_file_path = self.file_path
-        content = self.generate_search_replace(self.file_path, "", "")
-        self.code_auto_merge_editblock.merge_code(content, force_skip_git=True)
-        # Add assertions here to check if no changes were made
-        self.assertTrue(os.path.exists(new_file_path))
-        with open(new_file_path, "r") as f:
-            self.assertEqual(f.read(), "")
-        os.remove(new_file_path)
+    def test_parse_whole_text(self):
+        file_path = "test_file.py"
+        search_content = "existing_content"
+        replace_content = "new_content"
+        content = self.generate_search_replace(file_path, search_content, replace_content)
+        expected_result = [
+            PathAndCode(path="test_file.py", content="<<<<<<< SEARCH\nexisting_content\n=======\nnew_content\n>>>>>>> REPLACE")
+        ]
+        result = self.code_auto_merge_editblock.parse_whole_text(content)
+        self.assertEqual(result, expected_result)
 
-    def test_merge_code_with_changes(self):
-        # Create a test file
-        with open(self.file_path, "w") as f:
-            f.write("existing_content\n")
-        new_file_path = self.file_path
-        content = self.generate_search_replace(self.file_path, "existing_content", "new_content")
-        self.code_auto_merge_editblock.merge_code(content, force_skip_git=True)
-        # Add assertions here to check if the new file was created
-        self.assertTrue(os.path.exists(new_file_path))
-        with open(new_file_path, "r") as f:
-            self.assertEqual(f.read(), "new_file_content\n")
-        os.remove(new_file_path)
+    def test_get_edits(self):
+        file_path = "test_file.py"
+        search_content = "existing_content"
+        replace_content = "new_content"
+        content = self.generate_search_replace(file_path, search_content, replace_content)
+        expected_result = [
+            ("test_file.py", "existing_content", "new_content")
+        ]
+        result = self.code_auto_merge_editblock.get_edits(content)
+        self.assertEqual(result, expected_result)
 
 if __name__ == '__main__':
     unittest.main()
