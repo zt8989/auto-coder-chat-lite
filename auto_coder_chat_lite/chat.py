@@ -89,7 +89,7 @@ def get_all_file_names_in_project() -> List[str]:
         file_names.extend(files)
     return file_names
 
-def generate_file_tree(root_dir, indent_char='|   ', last_char='|-- ', level_char='|-- '):
+def generate_file_tree(root_dir, indent_char='    ', last_char='', level_char=''):
     file_tree = []
     gitignore_path = os.path.join(root_dir, '.gitignore')
     if os.path.exists(gitignore_path):
@@ -108,16 +108,11 @@ def generate_file_tree(root_dir, indent_char='|   ', last_char='|-- ', level_cha
             if spec.match_file(full_path) or any(exclude_dir in full_path for exclude_dir in final_exclude_dirs):
                 continue
             is_last = i == len(files) - 1
-            if is_last:
-                new_prefix = prefix + last_char
-                next_prefix = prefix + indent_char + '   '
-            else:
-                new_prefix = prefix + level_char
-                next_prefix = prefix + indent_char
+            new_prefix = prefix + indent_char
 
             if os.path.isdir(full_path):
                 file_tree.append(f"{new_prefix}{file_name}/")
-                list_files(full_path, next_prefix)
+                list_files(full_path, new_prefix)
             else:
                 file_tree.append(f"{new_prefix}{file_name}")
 
