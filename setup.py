@@ -26,7 +26,7 @@ setup(
     author='cowboy',
     author_email='251027705@qq.com',
     description='a simple code chat tool inspired by auto coder',
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/zt8989/auto-coder-chat-lite',
     classifiers=[
