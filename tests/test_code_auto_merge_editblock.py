@@ -18,12 +18,14 @@ class TestCodeAutoMergeEditBlock(unittest.TestCase):
         replace_header = ">>>>>>> REPLACE"
         search_header = "<<<<<<< SEARCH"
         return f"""
-{search_header}
+```python
 ##File: {file_path}
+{search_header}
 {search}
 =======
 {replace}
 {replace_header}
+```
 """
 
     def tearDown(self):
