@@ -53,5 +53,25 @@ class TestCodeAutoMergeEditBlock(unittest.TestCase):
         result = self.code_auto_merge_editblock.get_edits(content)
         self.assertEqual(result, expected_result)
 
+    def test_merge_code(self):
+        file_path = "test_file.py"
+        search_content = "existing_content"
+        replace_content = "new_content"
+        content = self.generate_search_replace(file_path, search_content, replace_content)
+        
+        # Create a temporary file with the initial content
+        initial_content = "existing_content"
+        with open(self.file_path, "w") as f:
+            f.write(initial_content)
+        
+        # Run the merge_code function
+        self.code_auto_merge_editblock.merge_code(content, force_skip_git=True)
+        
+        # Verify the file content has been updated
+        with open(self.file_path, "r") as f:
+            updated_content = f.read()
+        
+        self.assertEqual(updated_content, "new_content")
+
 if __name__ == '__main__':
     unittest.main()
