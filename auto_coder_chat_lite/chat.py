@@ -12,6 +12,8 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.completion import WordCompleter, Completer, Completion
 from rich.console import Console
 from rich.table import Table
+from pathspec import PathSpec
+from pathspec.patterns import GitWildMatchPattern
 
 memory = {
     "conversation": [],
@@ -37,9 +39,45 @@ commands = [
 def get_all_file_names_in_project() -> List[str]:
     project_root = os.getcwd()
     file_names = []
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
     for root, dirs, files in os.walk(project_root):
+        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
         file_names.extend(files)
     return file_names
+
+def generate_file_tree(root_dir, indent_char='|   ', last_char='|-- ', level_char='|-- '):
+    file_tree = []
+    gitignore_path = os.path.join(root_dir, '.gitignore')
+    if os.path.exists(gitignore_path):
+        with open(gitignore_path, 'r') as f:
+            gitignore_content = f.read()
+        spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_content.splitlines())
+    else:
+        spec = PathSpec()
+
+    def list_files(start_path, prefix=''):
+        files = os.listdir(start_path)
+        for i, file_name in enumerate(files):
+            full_path = os.path.join(start_path, file_name)
+            if spec.match_file(full_path):
+                continue
+            is_last = i == len(files) - 1
+            if is_last:
+                new_prefix = prefix + last_char
+                next_prefix = prefix + indent_char + '   '
+            else:
+                new_prefix = prefix + level_char
+                next_prefix = prefix + indent_char
+
+            if os.path.isdir(full_path):
+                file_tree.append(f"{new_prefix}{file_name}/")
+                list_files(full_path, next_prefix)
+            else:
+                file_tree.append(f"{new_prefix}{file_name}")
+
+    file_tree.append(f"{root_dir}/")
+    list_files(root_dir)
+    return "\n".join(file_tree)
 
 def find_files_in_project(patterns: List[str]) -> List[str]:
     project_root = os.getcwd()
@@ -150,15 +188,35 @@ def remove_files(file_names: List[str]):
         print("No files were removed.")
     completer.update_current_files(memory["current_files"]["files"])
     save_memory()
+    
+def list_files():
+    current_files = memory["current_files"]["files"]
+    if current_files:
+        table = Table(title="Current Files")
+        table.add_column("File", style="cyan")
+        for file in current_files:
+            table.add_row(os.path.basename(file))
+        console = Console()
+        console.print(table)
+    else:
+        print("No files in the current session.")
 
 def coding(query):
     project_root = os.getcwd()
-    files = "\n".join(get_all_file_names_in_project())
+    files = "\n".join(generate_file_tree(project_root))
     files_code = "\n".join(
         [f"##File: {file}\n{open(file).read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
 
-    with open("template.txt", "r") as template_file:
+    current_file_path = os.path.abspath(__file__)
+    current_dir = os.path.dirname(current_file_path)
+    template_path = os.path.join(current_dir, "template.txt")
+
+    if not os.path.exists(template_path):
+        print(f"Error: {template_path} does not exist.")
+        return
+
+    with open(template_path, "r") as template_file:
         template = template_file.read()
 
     replaced_template = template.format(
