@@ -54,10 +54,9 @@ class TestCodeAutoMergeEditBlock(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_merge_code(self):
-        file_path = "test_file.py"
         search_content = "existing_content"
         replace_content = "new_content"
-        content = self.generate_search_replace(file_path, search_content, replace_content)
+        content = self.generate_search_replace(self.file_path, search_content, replace_content)
         
         # Create a temporary file with the initial content
         initial_content = "existing_content"
