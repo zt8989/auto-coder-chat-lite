@@ -1,6 +1,8 @@
 # auto-coder-chat-lite
 
-A simple project scaffold tool.
+A lightweight AI code generation tool.
+
+[中文文档](./readme-cn.md)
 
 ## Overview
 
