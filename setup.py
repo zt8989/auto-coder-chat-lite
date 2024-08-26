@@ -6,6 +6,7 @@ setup(
     packages=find_packages(where='.'),
     package_dir={'': '.'},
     include_package_data=True,
+    package_data={'auto_coder_chat_lite': ['template.txt']},
     install_requires=[
         'loguru==0.7.2',
         'markdown-it-py==3.0.0',
