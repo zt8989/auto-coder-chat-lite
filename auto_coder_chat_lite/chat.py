@@ -1,5 +1,7 @@
+import json
 import os
 import sys
+from typing import List
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
