@@ -203,7 +203,7 @@ def list_files():
 
 def coding(query):
     project_root = os.getcwd()
-    files = "\n".join(generate_file_tree(project_root))
+    files = "\n".join(get_all_file_names_in_project())
     files_code = "\n".join(
         [f"##File: {file}\n{open(file).read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
@@ -236,6 +236,17 @@ def coding(query):
         print("pyperclip not installed, unable to copy to clipboard.")
 
     print("Coding request processed and output saved to output.txt.")
+
+    # 使用Console接收用户输入
+    console = Console()
+    user_input = console.input("请输入要合并的代码块: ")
+
+    # 调用merge_code方法
+    from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
+    from auto_coder_chat_lite.common import AutoCoderArgs
+    args = AutoCoderArgs(file="output.txt", source_dir=project_root, editblock_similarity=0.8)
+    code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
+    code_auto_merge_editblock.merge_code(user_input)
 
 def show_help():
     print("Supported commands:")
