@@ -270,6 +270,18 @@ def list_files():
     else:
         print("No files in the current session.")
 
+def read_template():
+    current_file_path = os.path.abspath(__file__)
+    current_dir = os.path.dirname(current_file_path)
+    template_path = os.path.join(current_dir, "template.txt")
+
+    if not os.path.exists(template_path):
+        print(f"Error: {template_path} does not exist.")
+        return None
+
+    with open(template_path, "r", encoding='utf-8') as template_file:
+        return template_file.read()
+
 def coding(query):
     project_root = os.getcwd()
     files = generate_file_tree(project_root)
@@ -277,17 +289,7 @@ def coding(query):
         [f"##File: {file}\n{open(file, encoding='utf-8').read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
 
-    current_file_path = os.path.abspath(__file__)
-    current_dir = os.path.dirname(current_file_path)
-    template_path = os.path.join(current_dir, "template.txt")
-
-    if not os.path.exists(template_path):
-        print(f"Error: {template_path} does not exist.")
-        return
-
-    with open(template_path, "r", encoding='utf-8') as template_file:
-        template = template_file.read()
-
+    template = read_template()
     replaced_template = template.format(
         project_root=project_root,
         files=files,
