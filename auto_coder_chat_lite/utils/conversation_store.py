@@ -1,6 +1,6 @@
 import os
 import json
-from autocoder.common import AutoCoderArgs
+from auto_coder_chat_lite.common import AutoCoderArgs
 
 
 def store_code_model_conversation(
