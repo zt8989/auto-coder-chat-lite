@@ -47,6 +47,21 @@ commands = [
     "/conf",
 ]
 
+def get_exclude_spec():
+    # 读取 .gitignore 文件
+    gitignore_path = os.path.join(os.getcwd(), '.gitignore')
+    if os.path.exists(gitignore_path):
+        with open(gitignore_path, 'r', encoding='utf-8') as f:
+            gitignore_content = f.read()
+        spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_content.splitlines())
+    else:
+        spec = PathSpec()
+    
+    # 获取排除目录
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    
+    return spec, final_exclude_dirs
+
 def get_all_file_names_in_project() -> List[str]:
     project_root = os.getcwd()
     file_names = []
@@ -101,15 +116,7 @@ def get_all_file_names_in_project() -> List[str]:
 
 def generate_file_tree(root_dir, indent_char='    ', last_char='', level_char=''):
     file_tree = []
-    gitignore_path = os.path.join(root_dir, '.gitignore')
-    if os.path.exists(gitignore_path):
-        with open(gitignore_path, 'r', encoding='utf-8') as f:
-            gitignore_content = f.read()
-        spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_content.splitlines())
-    else:
-        spec = PathSpec()
-
-    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    spec, final_exclude_dirs = get_exclude_spec()
 
     def list_files(start_path, prefix=''):
         files = os.listdir(start_path)
@@ -133,14 +140,14 @@ def generate_file_tree(root_dir, indent_char='    ', last_char='', level_char=''
 def find_files_in_project(patterns: List[str]) -> List[str]:
     project_root = os.getcwd()
     matched_files = []
-    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    spec, final_exclude_dirs = get_exclude_spec()
 
     for pattern in patterns:
         if "*" in pattern or "?" in pattern:
             for file_path in glob.glob(pattern, recursive=True):
                 if os.path.isfile(file_path):
                     abs_path = os.path.abspath(file_path)
-                    if not any(
+                    if not spec.match_file(abs_path) and not any(
                         exclude_dir in abs_path.split(os.sep)
                         for exclude_dir in final_exclude_dirs
                     ):
@@ -268,12 +275,21 @@ def load_memory():
 def add_files(args: List[str]):
     existing_files = memory["current_files"]["files"]
     matched_files = find_files_in_project(args)
-    files_to_add = [f for f in matched_files if f not in existing_files]
+    
+    spec, final_exclude_dirs = get_exclude_spec()
+    
+    # 过滤文件
+    files_to_add = []
+    for f in matched_files:
+        if f not in existing_files and not spec.match_file(f) and not any(exclude_dir in f for exclude_dir in final_exclude_dirs):
+            files_to_add.append(f)
+    
     if files_to_add:
         memory["current_files"]["files"].extend(files_to_add)
-        print(f"Added files: {files_to_add}")
+        print(f"添加的文件: {files_to_add}")
     else:
-        print("All specified files are already in the current session or no matches found.")
+        print("所有指定的文件已在当前会话中，或未找到匹配项，或被 .gitignore 和 exclude_dirs 排除。")
+    
     completer.update_current_files(memory["current_files"]["files"])
     save_memory()
 
