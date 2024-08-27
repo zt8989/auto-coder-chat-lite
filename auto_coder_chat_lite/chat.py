@@ -3,8 +3,6 @@ import json
 import os
 import platform
 
-from auto_coder_chat_lite.common.command_completer import CommandTextParser
-
 if platform.system() == "Windows":
     from colorama import init
     init()
@@ -22,6 +20,7 @@ from pathspec.patterns import GitWildMatchPattern
 
 from auto_coder_chat_lite.common import AutoCoderArgs
 from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
+from auto_coder_chat_lite.common.command_completer import CommandTextParser
 
 PROJECT_DIR_NAME = ".auto-coder-chat-lite"
 
