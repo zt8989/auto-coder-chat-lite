@@ -276,12 +276,20 @@ def read_template():
     project_dir = os.path.join(os.getcwd(), PROJECT_DIR_NAME)
     template_path = os.path.join(project_dir, "template.txt")
 
-    if not os.path.exists(template_path):
-        print(f"Error: {template_path} does not exist.")
-        return None
+    if os.path.exists(template_path):
+        with open(template_path, "r", encoding='utf-8') as template_file:
+            return template_file.read()
+    else:    
+        current_file_path = os.path.abspath(__file__)
+        current_dir = os.path.dirname(current_file_path)
+        template_path = os.path.join(current_dir, "template.txt")
 
-    with open(template_path, "r", encoding='utf-8') as template_file:
-        return template_file.read()
+        if not os.path.exists(template_path):
+            print(f"Error: {template_path} does not exist.")
+            return None
+
+        with open(template_path, "r", encoding='utf-8') as template_file:
+            return template_file.read()
 
 def coding(query):
     project_root = os.getcwd()
