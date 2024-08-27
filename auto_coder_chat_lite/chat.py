@@ -21,6 +21,7 @@ from pathspec.patterns import GitWildMatchPattern
 from auto_coder_chat_lite.common import AutoCoderArgs
 from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
 from auto_coder_chat_lite.common.command_completer import CommandTextParser
+from auto_coder_chat_lite.lang import get_text
 
 PROJECT_DIR_NAME = ".auto-coder-chat-lite"
 
@@ -275,9 +276,9 @@ def add_files(args: List[str]):
     
     if files_to_add:
         memory["current_files"]["files"].extend(files_to_add)
-        print(f"添加的文件: {files_to_add}")
+        print(get_text('files_added').format(files_to_add))
     else:
-        print("所有指定的文件已在当前会话中，或未找到匹配项，或被 .gitignore 和 exclude_dirs 排除。")
+        print(get_text('no_files_added'))
     
     completer.update_current_files(memory["current_files"]["files"])
     save_memory()
@@ -295,9 +296,9 @@ def remove_files(file_names: List[str]):
                     removed_files.append(file)
                     memory["current_files"]["files"].remove(file)
     if removed_files:
-        print(f"Removed files: {removed_files}")
+        print(get_text('files_removed').format(removed_files))
     else:
-        print("No files were removed.")
+        print(get_text('no_files_removed'))
     completer.update_current_files(memory["current_files"]["files"])
     save_memory()
     
@@ -312,7 +313,7 @@ def list_files():
         console = Console()
         console.print(table)
     else:
-        print("No files in the current session.")
+        print(get_text('no_files'))
 
 def read_template():
     project_dir = os.path.join(os.getcwd(), PROJECT_DIR_NAME)
@@ -327,7 +328,7 @@ def read_template():
         template_path = os.path.join(current_dir, "template", "code.txt")
 
         if not os.path.exists(template_path):
-            print(f"错误: {template_path} 不存在。")
+            print(f"Error: {template_path} does not exist.")
             return None
 
         with open(template_path, "r", encoding='utf-8') as template_file:
@@ -358,7 +359,7 @@ def coding(query):
     except ImportError:
         print("pyperclip not installed, unable to copy to clipboard.")
 
-    print("Coding request processed and output saved to output.txt.")
+    print(get_text('coding_processed'))
 
     # 使用Console接收用户输入
     lines = []
@@ -390,26 +391,26 @@ def exclude_dirs(dir_names: List[str]):
         existing_dirs.extend(dirs_to_add)
         if "exclude_dirs" not in memory:
             memory["exclude_dirs"] = existing_dirs
-        print(f"Added exclude dirs: {dirs_to_add}")
+        print(get_text('dirs_added').format(dirs_to_add))
     else:
-        print("All specified dirs are already in the exclude list.")
+        print(get_text('no_dirs_added'))
     save_memory()
     completer.refresh_files()
 
 def show_help():
-    print("Supported commands:")
-    print("  /add_files <file1> <file2> ... - Add files to the current session")
-    print("  /remove_files <file1> <file2> ... - Remove files from the current session")
-    print("  /list_files - List all active files in the current session")
-    print("  /coding <query> - Request the AI to modify code based on requirements")
-    print("  /help - Show this help message")
-    print("  /exit - Exit the program")
+    print(get_text('help_message'))
+    print(get_text('add_files_help'))
+    print(get_text('remove_files_help'))
+    print(get_text('list_files_help'))
+    print(get_text('coding_help'))
+    print(get_text('help_help'))
+    print(get_text('exit_help'))
 
 def init_project():
     """
-    初始化项目目录和内存文件。
+    Initialize project directory and memory file.
     
-    如果项目目录不存在，则创建该目录并初始化内存文件。
+    If the project directory doesn't exist, create it and initialize the memory file.
     """
     project_dir = PROJECT_DIR_NAME
     memory_file = os.path.join(project_dir, "memory.json")
@@ -464,7 +465,7 @@ def main():
             elif user_input.startswith("/coding"):
                 query = user_input[len("/coding") :].strip()
                 if not query:
-                    print("Please enter your request.")
+                    print(get_text('coding_request'))
                 else:
                     coding(query)
             elif user_input.startswith("/exclude_dirs"):
@@ -520,16 +521,16 @@ def main():
             elif user_input.startswith("/exit"):
                 raise EOFError()
             else:
-                print("Unknown command. Type /help to see available commands.")
+                print(get_text('unknown_command'))
 
         except KeyboardInterrupt:
             continue
         except EOFError:
             save_memory()
-            print("\nExiting Chat Auto Coder...")
+            print(get_text('exiting'))
             break
         except Exception as e:
-            print(f"An error occurred: {type(e).__name__} - {str(e)}")
+            print(get_text('error_occurred').format(type(e).__name__, str(e)))
 
 if __name__ == "__main__":
     main()
