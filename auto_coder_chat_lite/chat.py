@@ -32,8 +32,6 @@ memory = {
     "mode": "normal",  # 新增mode字段,默认为normal模式
 }
 
-base_persist_dir = os.path.join(".auto-coder", "plugins", "chat-auto-coder")
-
 defaut_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
 
 commands = [
@@ -104,15 +102,6 @@ def get_all_dir_names_in_project() -> List[str]:
             dir_names.append(dir)
     return dir_names
 
-
-def get_all_file_names_in_project() -> List[str]:
-    project_root = os.getcwd()
-    file_names = []
-    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
-    for root, dirs, files in os.walk(project_root):
-        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
-        file_names.extend(files)
-    return file_names
 
 def generate_file_tree(root_dir, indent_char='    ', last_char='', level_char=''):
     file_tree = []
