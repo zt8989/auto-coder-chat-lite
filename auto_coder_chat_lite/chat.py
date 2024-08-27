@@ -3,6 +3,8 @@ import json
 import os
 import platform
 
+from auto_coder_chat_lite.common.command_completer import CommandTextParser
+
 if platform.system() == "Windows":
     from colorama import init
     init()
@@ -195,6 +197,42 @@ class CommandCompleter(Completer):
                 for dir_name in self.all_dir_names:
                     if dir_name.startswith(current_word):
                         yield Completion(dir_name, start_position=-len(current_word))
+            elif words[0] == "/coding":
+                new_text = text[len(words[0]) :]
+                parser = CommandTextParser(new_text, words[0])
+                parser.coding()
+                current_word = parser.current_word()
+
+                all_tags = parser.tags
+
+                if current_word.startswith("@"):
+                    name = current_word[1:]
+                    target_set = set()
+
+                    for file_name in self.current_file_names:
+                        base_file_name = os.path.basename(file_name)
+                        if name in base_file_name:
+                            target_set.add(base_file_name)
+                            path_parts = file_name.split(os.sep)
+                            display_name = (
+                                os.sep.join(path_parts[-3:])
+                                if len(path_parts) > 3
+                                else file_name
+                            )
+                            yield Completion(
+                                base_file_name,
+                                start_position=-len(name),
+                                display=f"{display_name} (in active files)",
+                            )
+
+                    for file_name in self.all_file_names:
+                        if file_name.startswith(name) and file_name not in target_set:
+                            target_set.add(file_name)
+                            yield Completion(file_name, start_position=-len(name))
+
+                    for file_name in self.all_files:
+                        if name in file_name and file_name not in target_set:
+                            yield Completion(file_name, start_position=-len(name))
             else:
                 for command in self.commands:
                     if command.startswith(text):
