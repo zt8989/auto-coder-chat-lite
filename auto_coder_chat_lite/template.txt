@@ -1,5 +1,3 @@
-def generate_template():
-    template = """
 如果你需要生成代码，对于每个需要更改的文件,你需要按 *SEARCH/REPLACE block* 的格式进行生成。
 
 # *SEARCH/REPLACE block* Rules:
