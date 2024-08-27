@@ -2,6 +2,7 @@ import glob
 import json
 import os
 import platform
+import subprocess
 
 if platform.system() == "Windows":
     from colorama import init
@@ -44,6 +45,7 @@ commands = [
     "/exit",
     "/exclude_dirs",
     "/conf",
+    "/commit_message",  # 新增命令
 ]
 
 def get_exclude_spec():
@@ -315,9 +317,9 @@ def list_files():
     else:
         print(get_text('no_files'))
 
-def read_template():
+def read_template(template_name):
     project_dir = os.path.join(os.getcwd(), PROJECT_DIR_NAME)
-    template_path = os.path.join(project_dir, "template", "code.txt")
+    template_path = os.path.join(project_dir, "template", template_name)
 
     if os.path.exists(template_path):
         with open(template_path, "r", encoding='utf-8') as template_file:
@@ -325,10 +327,10 @@ def read_template():
     else:    
         current_file_path = os.path.abspath(__file__)
         current_dir = os.path.dirname(current_file_path)
-        template_path = os.path.join(current_dir, "template", "code.txt")
+        template_path = os.path.join(current_dir, "template", template_name)
 
         if not os.path.exists(template_path):
-            print(f"Error: {template_path} does not exist.")
+            print(f"错误: {template_path} 不存在。")
             return None
 
         with open(template_path, "r", encoding='utf-8') as template_file:
@@ -341,7 +343,7 @@ def coding(query):
         [f"##File: {file}\n{open(file, encoding='utf-8').read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
 
-    template = read_template()
+    template = read_template("code.txt")
     files_to_pass = files if memory["conf"].get("show_file_tree", False) else ""
     replaced_template = template.format(
         project_root=project_root,
@@ -357,7 +359,7 @@ def coding(query):
         import pyperclip
         pyperclip.copy(replaced_template)
     except ImportError:
-        print("pyperclip not installed, unable to copy to clipboard.")
+        print(get_text('pyperclip_not_installed'))
 
     print(get_text('coding_processed'))
 
@@ -403,6 +405,7 @@ def show_help():
     print(get_text('remove_files_help'))
     print(get_text('list_files_help'))
     print(get_text('coding_help'))
+    print(get_text('commit_message_help'))
     print(get_text('help_help'))
     print(get_text('exit_help'))
 
@@ -435,6 +438,37 @@ def init_project():
             with open(gitignore_path, "a", encoding='utf-8') as f:
                 f.write("output.txt\n")
 
+def get_git_diff():
+    try:
+        result = subprocess.run(['git', 'diff'], capture_output=True, text=True)
+        return result.stdout
+    except subprocess.CalledProcessError:
+        print(get_text('git_diff_error'))  # 更改这一行
+        return ""
+
+def commit_message():
+    template = read_template("commit_message.txt")
+    if template is None:
+        return
+
+    git_diff = get_git_diff()
+    
+    replaced_template = template.format(
+        git_diff=git_diff
+    )
+
+    with open("output.txt", "w", encoding='utf-8') as output_file:
+        output_file.write(replaced_template)
+
+    try:
+        import pyperclip
+        pyperclip.copy(replaced_template)
+        print(get_text('commit_message_generated'))
+    except ImportError:
+        print(get_text('pyperclip_not_installed'))
+
+    print(get_text('commit_message_saved'))
+
 def main():
     init_project()
     load_memory()
@@ -447,7 +481,7 @@ def main():
         complete_while_typing=True,
     )
 
-    print("Type /help to see available commands.\n")
+    print(get_text('type_help'))
     show_help()
 
     while True:
@@ -516,6 +550,8 @@ def main():
                         print("No configuration values set.")
                 else:
                     print("Usage: /conf [<key> [<value>]]")
+            elif user_input.startswith("/commit_message"):
+                commit_message()
             elif user_input.startswith("/help"):
                 show_help()
             elif user_input.startswith("/exit"):
