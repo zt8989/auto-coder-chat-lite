@@ -1,4 +1,5 @@
 import re
+import subprocess
 
 def update_version():
     with open('setup.py', 'r') as file:
@@ -22,6 +23,17 @@ def update_version():
 
     with open('setup.py', 'w') as file:
         file.write(updated_content)
+
+    try:
+        # 创建新的 git tag
+        subprocess.run(['git', 'tag', f'v{new_version}'], check=True)
+        print(f"Git tag v{new_version} 已创建")
+
+        # 推送新的 tag 到远程仓库
+        subprocess.run(['git', 'push', 'origin', f'v{new_version}'], check=True)
+        print(f"Git tag v{new_version} 已推送到远程仓库")
+    except subprocess.CalledProcessError as e:
+        print(f"创建或推送 Git tag 时出错: {e}")
 
     print(f"Version updated from {current_version} to {new_version}")
 
