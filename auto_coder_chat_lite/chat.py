@@ -440,10 +440,20 @@ def init_project():
 
 def get_git_diff():
     try:
-        result = subprocess.run(['git', 'diff'], capture_output=True, text=True)
-        return result.stdout
+        result = subprocess.run(['git', 'diff', '--cached'], capture_output=True, text=True)
+        diff_output = result.stdout.strip()
+        
+        if not diff_output:
+            result = subprocess.run(['git', 'diff'], capture_output=True, text=True)
+            diff_output = result.stdout.strip()
+        
+        if not diff_output:
+            print(get_text('git_diff_empty'))
+            return ""
+        
+        return diff_output
     except subprocess.CalledProcessError:
-        print(get_text('git_diff_error'))  # 更改这一行
+        print(get_text('git_diff_error'))
         return ""
 
 def commit_message():

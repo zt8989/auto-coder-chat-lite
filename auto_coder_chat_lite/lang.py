@@ -31,6 +31,7 @@ LANG = {
         'pyperclip_not_installed': "pyperclip not installed, unable to copy to clipboard.",
         'commit_message_saved': "Commit message saved to output.txt",
         'git_diff_error': "Error occurred while getting git diff",  # 新增这行
+        'git_diff_empty': "No changes detected in git diff",
     },
     'zh': {
         'help_message': "支持的命令：",
@@ -57,7 +58,8 @@ LANG = {
         'type_help': "输入 /help 查看可用命令。\n",
         'pyperclip_not_installed': "未安装pyperclip,无法复制到剪贴板。",
         'commit_message_saved': "提交信息已保存到output.txt",
-        'git_diff_error': "获取git diff时出错",  # 新增这行
+        'git_diff_error': "获取 git diff 时发生错误",  # 新增这行
+        'git_diff_empty': "git diff 未检测到任何更改",
     }
 }
 

@@ -2,6 +2,8 @@
 ```
 <type>(<scope>): <subject>
 
+<body>
+
 其中type的值为：
 feat：新功能（feature）
 fix：修补bug
