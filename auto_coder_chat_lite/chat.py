@@ -504,7 +504,7 @@ def main():
         complete_while_typing=True,
     )
 
-    print(get_text('type_help'))
+    print("\033[1;34m" + get_text('type_help') + "\033[0m")
     show_help()
 
     style = Style.from_dict(
