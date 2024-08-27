@@ -1,6 +1,6 @@
 以下是git commit规范
 ```
-<type>(<scope>): <subject>
+<emoji> <type>(<scope>): <subject>
 
 <body>
 
@@ -19,4 +19,4 @@ chore：构建过程或辅助工具的变动
 {git_diff}
 ```
 
-请为上述变更，按照规范生成一个带emoji的commit message
+请为上述变更，按照规范生成一个commit message
