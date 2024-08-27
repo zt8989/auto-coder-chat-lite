@@ -37,16 +37,28 @@ memory = {
 
 defaut_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
 
+# 在文件顶部添加以下常量定义
+COMMAND_ADD_FILES = "/add_files"
+COMMAND_REMOVE_FILES = "/remove_files"
+COMMAND_LIST_FILES = "/list_files"
+COMMAND_CODING = "/coding"
+COMMAND_EXCLUDE_DIRS = "/exclude_dirs"
+COMMAND_CONF = "/conf"
+COMMAND_COMMIT_MESSAGE = "/commit_message"
+COMMAND_HELP = "/help"
+COMMAND_EXIT = "/exit"
+
+# 更新commands列表
 commands = [
-    "/add_files",
-    "/remove_files",
-    "/list_files",
-    "/coding",
-    "/help",
-    "/exit",
-    "/exclude_dirs",
-    "/conf",
-    "/commit_message",  # 新增命令
+    COMMAND_ADD_FILES,
+    COMMAND_REMOVE_FILES,
+    COMMAND_LIST_FILES,
+    COMMAND_CODING,
+    COMMAND_HELP,
+    COMMAND_EXIT,
+    COMMAND_EXCLUDE_DIRS,
+    COMMAND_CONF,
+    COMMAND_COMMIT_MESSAGE,
 ]
 
 def get_exclude_spec():
@@ -181,22 +193,22 @@ class CommandCompleter(Completer):
         words = text.split()
 
         if len(words) > 0:
-            if words[0] == "/add_files":
+            if words[0] == COMMAND_ADD_FILES:
                 current_word = words[-1]
                 for file_name in self.all_file_names:
                     if file_name.startswith(current_word):
                         yield Completion(file_name, start_position=-len(current_word))
-            elif words[0] == "/remove_files":
+            elif words[0] == COMMAND_REMOVE_FILES:
                 current_word = words[-1]
                 for file_name in self.current_file_names:
                     if file_name.startswith(current_word):
                         yield Completion(file_name, start_position=-len(current_word))
-            elif words[0] == "/exclude_dirs":
+            elif words[0] == COMMAND_EXCLUDE_DIRS:
                 current_word = words[-1]
                 for dir_name in self.all_dir_names:
                     if dir_name.startswith(current_word):
                         yield Completion(dir_name, start_position=-len(current_word))
-            elif words[0] == "/coding":
+            elif words[0] == COMMAND_CODING:
                 new_text = text[len(words[0]) :]
                 parser = CommandTextParser(new_text, words[0])
                 parser.coding()
@@ -517,25 +529,25 @@ def main():
             ]
             user_input = session.prompt(FormattedText(prompt_message), style=style)
 
-            if user_input.startswith("/add_files"):
-                args = user_input[len("/add_files") :].strip().split()
+            if user_input.startswith(COMMAND_ADD_FILES):
+                args = user_input[len(COMMAND_ADD_FILES):].strip().split()
                 add_files(args)
-            elif user_input.startswith("/remove_files"):
-                file_names = user_input[len("/remove_files") :].strip().split()
+            elif user_input.startswith(COMMAND_REMOVE_FILES):
+                file_names = user_input[len(COMMAND_REMOVE_FILES):].strip().split()
                 remove_files(file_names)
-            elif user_input.startswith("/list_files"):
+            elif user_input.startswith(COMMAND_LIST_FILES):
                 list_files()
-            elif user_input.startswith("/coding"):
-                query = user_input[len("/coding") :].strip()
+            elif user_input.startswith(COMMAND_CODING):
+                query = user_input[len(COMMAND_CODING):].strip()
                 if not query:
                     print(get_text('coding_request'))
                 else:
                     coding(query)
-            elif user_input.startswith("/exclude_dirs"):
-                dir_names = user_input[len("/exclude_dirs") :].strip().split()
+            elif user_input.startswith(COMMAND_EXCLUDE_DIRS):
+                dir_names = user_input[len(COMMAND_EXCLUDE_DIRS):].strip().split()
                 exclude_dirs(dir_names)
-            elif user_input.startswith("/conf"):
-                conf_args = user_input[len("/conf") :].strip().split()
+            elif user_input.startswith(COMMAND_CONF):
+                conf_args = user_input[len(COMMAND_CONF):].strip().split()
                 if len(conf_args) == 2:
                     key, value = conf_args
                     if key == "show_file_tree":
@@ -579,11 +591,11 @@ def main():
                         print("No configuration values set.")
                 else:
                     print("Usage: /conf [<key> [<value>]]")
-            elif user_input.startswith("/commit_message"):
+            elif user_input.startswith(COMMAND_COMMIT_MESSAGE):
                 commit_message()
-            elif user_input.startswith("/help"):
+            elif user_input.startswith(COMMAND_HELP):
                 show_help()
-            elif user_input.startswith("/exit"):
+            elif user_input.startswith(COMMAND_EXIT):
                 raise EOFError()
             else:
                 print(get_text('unknown_command'))
