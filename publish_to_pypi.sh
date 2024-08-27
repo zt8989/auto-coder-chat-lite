@@ -13,7 +13,7 @@ python update_version.py
 rm -rf dist/
 
 # Build the package
-python setup.py bdist_wheel --universal
+python setup.py sdist bdist_wheel
 
 # Upload the package to PyPI
 twine upload dist/*

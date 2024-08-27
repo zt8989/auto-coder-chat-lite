@@ -25,6 +25,15 @@ def update_version():
         file.write(updated_content)
 
     try:
+        # 提交版本更新
+        commit_message = f"🔖 chore(version): 更新版本至 {new_version}"
+        try:
+            subprocess.run(['git', 'add', 'setup.py'], check=True)
+            subprocess.run(['git', 'commit', '-m', commit_message], check=True)
+            print(f"已提交版本更新: {commit_message}")
+        except subprocess.CalledProcessError as e:
+            print(f"提交版本更新时出错: {e}")
+            return
         # 创建新的 git tag
         subprocess.run(['git', 'tag', f'v{new_version}'], check=True)
         print(f"Git tag v{new_version} 已创建")
