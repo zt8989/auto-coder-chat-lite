@@ -135,7 +135,7 @@ class CodeAutoMergeEditBlock:
         return result
 
     def merge_code(self, content: str, force_skip_git: bool = False):
-        file_content = open(self.args.file).read()
+        file_content = open(self.args.file, encoding='utf-8').read()
         md5 = hashlib.md5(file_content.encode("utf-8")).hexdigest()
         file_name = os.path.basename(self.args.file)
 
@@ -154,7 +154,7 @@ class CodeAutoMergeEditBlock:
                 changes_made = True
             else:
                 if file_path not in file_content_mapping:
-                    with open(file_path, "r") as f:
+                    with open(file_path, "r", encoding='utf-8') as f:
                         temp = f.read()
                         file_content_mapping[file_path] = temp
                 existing_content = file_content_mapping[file_path]
@@ -202,7 +202,7 @@ class CodeAutoMergeEditBlock:
         # Now, apply the changes
         for file_path, new_content in file_content_mapping.items():
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, "w") as f:
+            with open(file_path, "w", encoding='utf-8') as f:
                 f.write(new_content)
 
         if self.args.request_id:
