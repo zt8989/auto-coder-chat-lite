@@ -418,7 +418,7 @@ def main():
                 exclude_dirs(dir_names)
             elif user_input.startswith("/conf"):
                 conf_args = user_input[len("/conf") :].strip().split()
-                elif len(conf_args) == 2:
+                if len(conf_args) == 2:
                     key, value = conf_args
                     try:
                         value = float(value)
