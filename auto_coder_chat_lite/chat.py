@@ -316,7 +316,7 @@ def list_files():
 
 def read_template():
     project_dir = os.path.join(os.getcwd(), PROJECT_DIR_NAME)
-    template_path = os.path.join(project_dir, "template.txt")
+    template_path = os.path.join(project_dir, "template", "code.txt")
 
     if os.path.exists(template_path):
         with open(template_path, "r", encoding='utf-8') as template_file:
@@ -324,10 +324,10 @@ def read_template():
     else:    
         current_file_path = os.path.abspath(__file__)
         current_dir = os.path.dirname(current_file_path)
-        template_path = os.path.join(current_dir, "template.txt")
+        template_path = os.path.join(current_dir, "template", "code.txt")
 
         if not os.path.exists(template_path):
-            print(f"Error: {template_path} does not exist.")
+            print(f"错误: {template_path} 不存在。")
             return None
 
         with open(template_path, "r", encoding='utf-8') as template_file:
