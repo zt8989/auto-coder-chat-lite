@@ -364,6 +364,20 @@ def init_project():
             json.dump({"current_files": {"files": []}, "conf": {}}, f, indent=2, ensure_ascii=False)
         print(f"Created directory {project_dir} and initialized {memory_file}")
 
+    gitignore_path = os.path.join(os.getcwd(), ".gitignore")
+    if not os.path.exists(gitignore_path):
+        with open(gitignore_path, "w", encoding='utf-8') as f:
+            f.write(".auto-coder-chat-lite/\noutput.txt\n")
+    else:
+        with open(gitignore_path, "r", encoding='utf-8') as f:
+            content = f.read()
+        if ".auto-coder-chat-lite/" not in content:
+            with open(gitignore_path, "a", encoding='utf-8') as f:
+                f.write(".auto-coder-chat-lite/\n")
+        if "output.txt" not in content:
+            with open(gitignore_path, "a", encoding='utf-8') as f:
+                f.write("output.txt\n")
+
 def main():
     init_project()
     load_memory()
