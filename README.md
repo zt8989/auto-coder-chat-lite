@@ -37,6 +37,7 @@ This will start the interactive command-line interface where you can use the fol
 
 The project relies on the following Python packages:
 
+- `colorama==0.4.6`
 - `loguru==0.7.2`
 - `markdown-it-py==3.0.0`
 - `mdurl==0.1.2`

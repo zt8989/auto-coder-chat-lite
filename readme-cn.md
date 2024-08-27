@@ -35,6 +35,7 @@ code.chat
 
 该项目依赖于以下 Python 包：
 
+- `colorama==0.4.6`
 - `loguru==0.7.2`
 - `markdown-it-py==3.0.0`
 - `mdurl==0.1.2`
