@@ -12,6 +12,7 @@ from typing import List
 from prompt_toolkit import PromptSession, prompt
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.styles import Style
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.completion import Completer, Completion
 from rich.console import Console
@@ -494,9 +495,27 @@ def main():
     print(get_text('type_help'))
     show_help()
 
+    style = Style.from_dict(
+        {
+            "username": "#884444",
+            "at": "#00aa00",
+            "colon": "#0000aa",
+            "pound": "#00aa00",
+            "host": "#00ffff bg:#444400",
+        }
+    )
+
     while True:
         try:
-            user_input = session.prompt("> ")
+            prompt_message = [
+                ("class:username", "coding"),
+                ("class:at", "@"),
+                ("class:host", "code.chat"),
+                ("class:colon", ":"),
+                ("class:path", "~"),
+                ("class:dollar", "$ "),
+            ]
+            user_input = session.prompt(FormattedText(prompt_message), style=style)
 
             if user_input.startswith("/add_files"):
                 args = user_input[len("/add_files") :].strip().split()
