@@ -41,6 +41,7 @@ commands = [
     "/help",
     "/exit",
     "/exclude_dirs",
+    "/conf",
 ]
 
 def get_all_file_names_in_project() -> List[str]:
@@ -322,7 +323,8 @@ def coding(query):
 
     result = "\n".join(lines)
 
-    args = AutoCoderArgs(file="output.txt", source_dir=project_root, editblock_similarity=0.8)
+    editblock_similarity = memory["conf"].get("editblock_similarity", 0.8)
+    args = AutoCoderArgs(file="output.txt", source_dir=project_root, editblock_similarity=editblock_similarity)
     code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
     code_auto_merge_editblock.merge_code(result)
 
@@ -414,6 +416,32 @@ def main():
             elif user_input.startswith("/exclude_dirs"):
                 dir_names = user_input[len("/exclude_dirs") :].strip().split()
                 exclude_dirs(dir_names)
+            elif user_input.startswith("/conf"):
+                conf_args = user_input[len("/conf") :].strip().split()
+                elif len(conf_args) == 2:
+                    key, value = conf_args
+                    try:
+                        value = float(value)
+                        memory["conf"][key] = value
+                        print(f"Updated configuration: {key} = {value}")
+                        save_memory()  # 更新配置值后调用 save_memory 方法
+                    except ValueError:
+                        print("Invalid value. Please provide a valid number.")
+                elif len(conf_args) == 1:
+                    key = conf_args[0]
+                    if key in memory["conf"]:
+                        print(f"Current configuration: {key} = {memory['conf'][key]}")
+                    else:
+                        print(f"Configuration key '{key}' not found.")
+                elif len(conf_args) == 0:
+                    if memory["conf"]:
+                        print("Current configuration:")
+                        for key, value in memory["conf"].items():
+                            print(f"  {key} = {value}")
+                    else:
+                        print("No configuration values set.")
+                else:
+                    print("Usage: /conf [<key> [<value>]]")
             elif user_input.startswith("/help"):
                 show_help()
             elif user_input.startswith("/exit"):
