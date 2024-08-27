@@ -6,7 +6,7 @@ setup(
     packages=find_packages(where='.'),
     package_dir={'': '.'},
     include_package_data=True,
-    package_data={'auto_coder_chat_lite': ['template/code.txt']},
+    package_data={'auto_coder_chat_lite': ['template/code.txt', 'template/commit_message.txt']},
     install_requires=[
         'colorama==0.4.6',
         'loguru==0.7.2',
