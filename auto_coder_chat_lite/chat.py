@@ -1,6 +1,12 @@
 import glob
 import json
 import os
+import platform
+
+if platform.system() == "Windows":
+    from colorama import init
+    init()
+
 from typing import List
 from prompt_toolkit import PromptSession, prompt
 from prompt_toolkit.history import InMemoryHistory

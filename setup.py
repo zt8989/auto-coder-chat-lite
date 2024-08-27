@@ -8,6 +8,7 @@ setup(
     include_package_data=True,
     package_data={'auto_coder_chat_lite': ['template.txt']},
     install_requires=[
+        'colorama==0.4.6',
         'loguru==0.7.2',
         'markdown-it-py==3.0.0',
         'mdurl==0.1.2',
