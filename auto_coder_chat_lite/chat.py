@@ -26,7 +26,7 @@ PROJECT_DIR_NAME = ".auto-coder-chat-lite"
 memory = {
     "conversation": [],
     "current_files": {"files": [], "groups": {}},
-    "conf": {},
+    "conf": {"show_file_tree": False, "editblock_similarity": 0.8},
     "exclude_dirs": [],
     "mode": "normal",  # 新增mode字段,默认为normal模式
 }
@@ -291,9 +291,10 @@ def coding(query):
     )
 
     template = read_template()
+    files_to_pass = files if memory["conf"].get("show_file_tree", False) else ""
     replaced_template = template.format(
         project_root=project_root,
-        files=files,
+        files=files_to_pass,
         files_code=files_code,
         query=query
     )
@@ -423,13 +424,32 @@ def main():
                 conf_args = user_input[len("/conf") :].strip().split()
                 if len(conf_args) == 2:
                     key, value = conf_args
-                    try:
-                        value = float(value)
-                        memory["conf"][key] = value
-                        print(f"Updated configuration: {key} = {value}")
-                        save_memory()  # 更新配置值后调用 save_memory 方法
-                    except ValueError:
-                        print("Invalid value. Please provide a valid number.")
+                    if key == "show_file_tree":
+                        if value.lower() in ["true", "false"]:
+                            memory["conf"][key] = value.lower() == "true"
+                            print(f"Updated configuration: {key} = {memory['conf'][key]}")
+                            save_memory()  # 更新配置值后调用 save_memory 方法
+                        else:
+                            print("Invalid value. Please provide 'true' or 'false'.")
+                    elif key == "editblock_similarity":
+                        try:
+                            value = float(value)
+                            if 0 <= value <= 1:
+                                memory["conf"][key] = value
+                                print(f"Updated configuration: {key} = {value}")
+                                save_memory()  # 更新配置值后调用 save_memory 方法
+                            else:
+                                print("Invalid value. Please provide a number between 0 and 1.")
+                        except ValueError:
+                            print("Invalid value. Please provide a valid number.")
+                    else:
+                        try:
+                            value = float(value)
+                            memory["conf"][key] = value
+                            print(f"Updated configuration: {key} = {value}")
+                            save_memory()  # 更新配置值后调用 save_memory 方法
+                        except ValueError:
+                            print("Invalid value. Please provide a valid number.")
                 elif len(conf_args) == 1:
                     key = conf_args[0]
                     if key in memory["conf"]:
