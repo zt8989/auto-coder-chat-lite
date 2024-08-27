@@ -21,6 +21,8 @@ from pathspec.patterns import GitWildMatchPattern
 from auto_coder_chat_lite.common import AutoCoderArgs
 from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
 
+PROJECT_DIR_NAME = ".auto-coder-chat-lite"
+
 memory = {
     "conversation": [],
     "current_files": {"files": [], "groups": {}},
@@ -215,12 +217,12 @@ class CommandCompleter(Completer):
 completer = CommandCompleter(commands)
 
 def save_memory():
-    with open(os.path.join(".auto-coder-chat-lite", "memory.json"), "w", encoding='utf-8') as f:
+    with open(os.path.join(PROJECT_DIR_NAME, "memory.json"), "w", encoding='utf-8') as f:
         json.dump(memory, f, indent=2, ensure_ascii=False)
 
 def load_memory():
     global memory
-    memory_path = os.path.join(".auto-coder-chat-lite", "memory.json")
+    memory_path = os.path.join(PROJECT_DIR_NAME, "memory.json")
     if os.path.exists(memory_path):
         with open(memory_path, "r", encoding='utf-8') as f:
             memory = json.load(f)
@@ -271,9 +273,8 @@ def list_files():
         print("No files in the current session.")
 
 def read_template():
-    current_file_path = os.path.abspath(__file__)
-    current_dir = os.path.dirname(current_file_path)
-    template_path = os.path.join(current_dir, "template.txt")
+    project_dir = os.path.join(os.getcwd(), PROJECT_DIR_NAME)
+    template_path = os.path.join(project_dir, "template.txt")
 
     if not os.path.exists(template_path):
         print(f"Error: {template_path} does not exist.")
@@ -359,7 +360,7 @@ def init_project():
     
     如果项目目录不存在，则创建该目录并初始化内存文件。
     """
-    project_dir = ".auto-coder-chat-lite"
+    project_dir = PROJECT_DIR_NAME
     memory_file = os.path.join(project_dir, "memory.json")
     
     if not os.path.exists(project_dir):
@@ -371,13 +372,13 @@ def init_project():
     gitignore_path = os.path.join(os.getcwd(), ".gitignore")
     if not os.path.exists(gitignore_path):
         with open(gitignore_path, "w", encoding='utf-8') as f:
-            f.write(".auto-coder-chat-lite/\noutput.txt\n")
+            f.write(f"{PROJECT_DIR_NAME}/\noutput.txt\n")
     else:
         with open(gitignore_path, "r", encoding='utf-8') as f:
             content = f.read()
-        if ".auto-coder-chat-lite/" not in content:
+        if f"{PROJECT_DIR_NAME}/" not in content:
             with open(gitignore_path, "a", encoding='utf-8') as f:
-                f.write(".auto-coder-chat-lite/\n")
+                f.write(f"{PROJECT_DIR_NAME}/\n")
         if "output.txt" not in content:
             with open(gitignore_path, "a", encoding='utf-8') as f:
                 f.write("output.txt\n")
