@@ -30,6 +30,9 @@ This will start the interactive command-line interface where you can use the fol
 - `/remove_files <file1> <file2> ...` - Remove files from the current session.
 - `/list_files` - List all active files in the current session.
 - `/coding <query>` - Request the AI to modify code based on requirements.
+- `/exclude_dirs <dir1> <dir2> ...` - Exclude directories from file searches.
+- `/conf [<key> [<value>]]` - View or set configuration options.
+- `/commit_message` - Generate a commit message based on Git diff.
 - `/help` - Show this help message.
 - `/exit` - Exit the program.
 

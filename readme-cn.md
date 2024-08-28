@@ -28,6 +28,9 @@ code.chat
 - `/remove_files <file1> <file2> ...` - 从当前会话中删除文件。
 - `/list_files` - 列出当前会话中的所有活动文件。
 - `/coding <query>` - 根据需求请求AI修改代码。
+- `/exclude_dirs <dir1> <dir2> ...` - 从文件搜索中排除目录。
+- `/conf [<key> [<value>]]` - 查看或设置配置选项。
+- `/commit_message` - 根据Git差异生成提交消息。
 - `/help` - 显示帮助信息。
 - `/exit` - 退出程序。
 
