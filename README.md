@@ -2,7 +2,7 @@
 
 A lightweight AI code generation tool.
 
-[中文文档](./readme-cn.md)
+[English](./README.md) | [中文](./readme-cn.md)
 
 ## Overview
 
