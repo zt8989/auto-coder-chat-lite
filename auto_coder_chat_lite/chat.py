@@ -3,6 +3,18 @@ import json
 import os
 import platform
 import subprocess
+import traceback
+import argparse
+import logging
+
+# 设置日志记录器
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(message)s')
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 if platform.system() == "Windows":
     from colorama import init
@@ -291,9 +303,9 @@ def add_files(args: List[str]):
     
     if files_to_add:
         memory["current_files"]["files"].extend(files_to_add)
-        print(get_text('files_added').format(files_to_add))
+        logger.info(get_text('files_added').format(files_to_add))
     else:
-        print(get_text('no_files_added'))
+        logger.info(get_text('no_files_added'))
     
     completer.update_current_files(memory["current_files"]["files"])
     save_memory()
@@ -311,9 +323,9 @@ def remove_files(file_names: List[str]):
                     removed_files.append(file)
                     memory["current_files"]["files"].remove(file)
     if removed_files:
-        print(get_text('files_removed').format(removed_files))
+        logger.info(get_text('files_removed').format(removed_files))
     else:
-        print(get_text('no_files_removed'))
+        logger.info(get_text('no_files_removed'))
     completer.update_current_files(memory["current_files"]["files"])
     save_memory()
     
@@ -328,7 +340,7 @@ def list_files():
         console = Console()
         console.print(table)
     else:
-        print(get_text('no_files'))
+        logger.info(get_text('no_files'))
 
 def read_template(template_name):
     project_dir = os.path.join(os.getcwd(), PROJECT_DIR_NAME)
@@ -343,7 +355,7 @@ def read_template(template_name):
         template_path = os.path.join(current_dir, "template", template_name)
 
         if not os.path.exists(template_path):
-            print(f"错误: {template_path} 不存在。")
+            logger.error(f"错误: {template_path} 不存在。")
             return None
 
         with open(template_path, "r", encoding='utf-8') as template_file:
@@ -372,17 +384,17 @@ def coding(query):
         import pyperclip
         pyperclip.copy(replaced_template)
     except ImportError:
-        print(get_text('pyperclip_not_installed'))
+        logger.info(get_text('pyperclip_not_installed'))
 
-    print(get_text('coding_processed'))
+    logger.info(get_text('coding_processed'))
 
-    # 使用Console接收用户输入
+    #  使用Console接收用户输入
     lines = []
     while True:
         line = prompt(FormattedText([("#00FF00", "> ")]), multiline=False)
         line_lower = line.strip().lower()
         if line_lower in ["eof", "/eof"]:
-            break
+            break 
         elif line_lower in ["/clear"]:
             lines = []
             print("\033[2J\033[H")  # Clear terminal screen
@@ -406,21 +418,21 @@ def exclude_dirs(dir_names: List[str]):
         existing_dirs.extend(dirs_to_add)
         if "exclude_dirs" not in memory:
             memory["exclude_dirs"] = existing_dirs
-        print(get_text('dirs_added').format(dirs_to_add))
+        logger.info(get_text('dirs_added').format(dirs_to_add))
     else:
-        print(get_text('no_dirs_added'))
+        logger.info(get_text('no_dirs_added'))
     save_memory()
     completer.refresh_files()
 
 def show_help():
-    print(get_text('help_message'))
-    print(get_text('add_files_help'))
-    print(get_text('remove_files_help'))
-    print(get_text('list_files_help'))
-    print(get_text('coding_help'))
-    print(get_text('commit_message_help'))
-    print(get_text('help_help'))
-    print(get_text('exit_help'))
+    logger.info(get_text('help_message'))
+    logger.info(get_text('add_files_help'))
+    logger.info(get_text('remove_files_help'))
+    logger.info(get_text('list_files_help'))
+    logger.info(get_text('coding_help'))
+    logger.info(get_text('commit_message_help'))
+    logger.info(get_text('help_help'))
+    logger.info(get_text('exit_help'))
 
 def init_project():
     """
@@ -435,7 +447,7 @@ def init_project():
         os.makedirs(project_dir)
         with open(memory_file, "w", encoding='utf-8') as f:
             json.dump({"current_files": {"files": []}, "conf": {}}, f, indent=2, ensure_ascii=False)
-        print(f"Created directory {project_dir} and initialized {memory_file}")
+        logger.info(f"Created directory {project_dir} and initialized {memory_file}")
 
     gitignore_path = os.path.join(os.getcwd(), ".gitignore")
     if not os.path.exists(gitignore_path):
@@ -461,12 +473,12 @@ def get_git_diff():
             diff_output = result.stdout.strip()
         
         if not diff_output:
-            print(get_text('git_diff_empty'))
+            logger.info(get_text('git_diff_empty'))
             return ""
         
         return diff_output
     except subprocess.CalledProcessError:
-        print(get_text('git_diff_error'))
+        logger.info(get_text('git_diff_error'))
         return ""
 
 def commit_message():
@@ -486,13 +498,13 @@ def commit_message():
     try:
         import pyperclip
         pyperclip.copy(replaced_template)
-        print(get_text('commit_message_generated'))
+        logger.info(get_text('commit_message_generated'))
     except ImportError:
-        print(get_text('pyperclip_not_installed'))
+        logger.info(get_text('pyperclip_not_installed'))
 
-    print(get_text('commit_message_saved'))
+    logger.info(get_text('commit_message_saved'))
 
-def main():
+def main(verbose=False):
     init_project()
     load_memory()
 
@@ -504,7 +516,7 @@ def main():
         complete_while_typing=True,
     )
 
-    print("\033[1;34m" + get_text('type_help') + "\033[0m")
+    logger.info("\033[1;34m" + get_text('type_help') + "\033[0m")
     show_help()
 
     style = Style.from_dict(
@@ -540,7 +552,7 @@ def main():
             elif user_input.startswith(COMMAND_CODING):
                 query = user_input[len(COMMAND_CODING):].strip()
                 if not query:
-                    print(get_text('coding_request'))
+                    logger.info(get_text('coding_request'))
                 else:
                     coding(query)
             elif user_input.startswith(COMMAND_EXCLUDE_DIRS):
@@ -553,44 +565,44 @@ def main():
                     if key == "show_file_tree":
                         if value.lower() in ["true", "false"]:
                             memory["conf"][key] = value.lower() == "true"
-                            print(f"Updated configuration: {key} = {memory['conf'][key]}")
+                            logger.info(f"Updated configuration: {key} = {memory['conf'][key]}")
                             save_memory()  # 更新配置值后调用 save_memory 方法
                         else:
-                            print("Invalid value. Please provide 'true' or 'false'.")
+                            logger.info("Invalid value. Please provide 'true' or 'false'.")
                     elif key == "editblock_similarity":
                         try:
                             value = float(value)
                             if 0 <= value <= 1:
                                 memory["conf"][key] = value
-                                print(f"Updated configuration: {key} = {value}")
+                                logger.info(f"Updated configuration: {key} = {value}")
                                 save_memory()  # 更新配置值后调用 save_memory 方法
                             else:
-                                print("Invalid value. Please provide a number between 0 and 1.")
+                                logger.info("Invalid value. Please provide a number between 0 and 1.")
                         except ValueError:
-                            print("Invalid value. Please provide a valid number.")
+                            logger.info("Invalid value. Please provide a valid number.")
                     else:
                         try:
                             value = float(value)
                             memory["conf"][key] = value
-                            print(f"Updated configuration: {key} = {value}")
+                            logger.info(f"Updated configuration: {key} = {value}")
                             save_memory()  # 更新配置值后调用 save_memory 方法
                         except ValueError:
-                            print("Invalid value. Please provide a valid number.")
+                            logger.info("Invalid value. Please provide a valid number.")
                 elif len(conf_args) == 1:
                     key = conf_args[0]
                     if key in memory["conf"]:
-                        print(f"Current configuration: {key} = {memory['conf'][key]}")
+                        logger.info(f"Current configuration: {key} = {memory['conf'][key]}")
                     else:
-                        print(f"Configuration key '{key}' not found.")
+                        logger.info(f"Configuration key '{key}' not found.")
                 elif len(conf_args) == 0:
                     if memory["conf"]:
-                        print("Current configuration:")
+                        logger.info("Current configuration:")
                         for key, value in memory["conf"].items():
-                            print(f"  {key} = {value}")
+                            logger.info(f"  {key} = {value}")
                     else:
-                        print("No configuration values set.")
+                        logger.info("No configuration values set.")
                 else:
-                    print("Usage: /conf [<key> [<value>]]")
+                    logger.info("Usage: /conf [<key> [<value>]]")
             elif user_input.startswith(COMMAND_COMMIT_MESSAGE):
                 commit_message()
             elif user_input.startswith(COMMAND_HELP):
@@ -598,16 +610,24 @@ def main():
             elif user_input.startswith(COMMAND_EXIT):
                 raise EOFError()
             else:
-                print(get_text('unknown_command'))
+                logger.info(get_text('unknown_command'))
 
         except KeyboardInterrupt:
             continue
         except EOFError:
             save_memory()
-            print(get_text('exiting'))
+            logger.info(get_text('exiting'))
             break
         except Exception as e:
-            print(get_text('error_occurred').format(type(e).__name__, str(e)))
+            if verbose:
+                logger.error(get_text('error_occurred').format(type(e).__name__, str(e)))
+                logger.error(traceback.format_exc())
+            else:
+                logger.error(get_text('error_occurred').format(type(e).__name__, str(e)))
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Auto Coder Chat Lite")
+    parser.add_argument("-v", "--verbose", action="store_true", help=get_text('verbose_help'))
+    args = parser.parse_args()
+    
+    main(verbose=args.verbose)

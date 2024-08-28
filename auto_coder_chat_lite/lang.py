@@ -32,6 +32,7 @@ LANG = {
         'commit_message_saved': "Commit message saved to output.txt",
         'git_diff_error': "Error occurred while getting git diff",
         'git_diff_empty': "No changes detected in git diff",
+        'verbose_help': "Enable verbose output mode",
     },
     'zh': {
         'help_message': "\033[1m支持的命令：\033[0m",
@@ -60,6 +61,7 @@ LANG = {
         'commit_message_saved': "提交信息已保存到output.txt",
         'git_diff_error': "获取 git diff 时发生错误",
         'git_diff_empty': "git diff 未检测到任何更改",
+        'verbose_help': "启用详细输出模式",
     }
 }
 
