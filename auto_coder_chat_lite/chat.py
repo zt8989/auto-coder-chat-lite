@@ -355,7 +355,7 @@ def read_template(template_name):
         template_path = os.path.join(current_dir, "template", template_name)
 
         if not os.path.exists(template_path):
-            logger.error(f"错误: {template_path} 不存在。")
+            logger.error(get_text('template_not_exist').format(template_path))
             return None
 
         with open(template_path, "r", encoding='utf-8') as template_file:
