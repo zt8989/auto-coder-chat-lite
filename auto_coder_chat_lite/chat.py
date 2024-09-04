@@ -433,9 +433,8 @@ def show_help():
     logger.info(get_text('list_files_help'))
     logger.info(get_text('coding_help'))
     logger.info(get_text('commit_message_help'))
-    logger.info(get_text('help_help'))
-    logger.info(get_text('exit_help'))
     logger.info(get_text('merge_help'))
+    logger.info(get_text('exit_help'))
 
 def init_project():
     """
