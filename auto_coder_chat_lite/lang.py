@@ -34,6 +34,9 @@ LANG = {
         'git_diff_empty': "No changes detected in git diff",
         'verbose_help': "Enable verbose output mode",
         'template_not_exist': "Error: {} does not exist.",
+        'merge_help': "  \033[94m/merge\033[0m - \033[92mMerge code changes\033[0m",
+        'merge_started': "Starting code merge...",
+        'merge_completed': "Code merge completed",
     },
     'zh': {
         'help_message': "\033[1m支持的命令：\033[0m",
@@ -64,6 +67,9 @@ LANG = {
         'git_diff_empty': "git diff 未检测到任何更改",
         'verbose_help': "启用详细输出模式",
         'template_not_exist': "错误: {} 不存在。",
+        'merge_help': "  \033[94m/merge\033[0m - \033[92m合并代码更改\033[0m",
+        'merge_started': "开始合并代码...",
+        'merge_completed': "代码合并完成",
     }
 }
 

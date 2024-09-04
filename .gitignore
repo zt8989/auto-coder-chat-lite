@@ -22,3 +22,4 @@ venv/
 .auto-coder-chat-lite/
 actions/
 output.txt
+.ipynb_checkpoints/

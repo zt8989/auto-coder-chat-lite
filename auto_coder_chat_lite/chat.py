@@ -49,6 +49,9 @@ memory = {
 
 defaut_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
 
+# 在文件顶部添加常量定义
+PROJECT_ROOT = os.getcwd()
+
 # 在文件顶部添加以下常量定义
 COMMAND_ADD_FILES = "/add_files"
 COMMAND_REMOVE_FILES = "/remove_files"
@@ -59,6 +62,7 @@ COMMAND_CONF = "/conf"
 COMMAND_COMMIT_MESSAGE = "/commit_message"
 COMMAND_HELP = "/help"
 COMMAND_EXIT = "/exit"
+COMMAND_MERGE = "/merge"
 
 # 更新commands列表
 commands = [
@@ -71,11 +75,12 @@ commands = [
     COMMAND_EXCLUDE_DIRS,
     COMMAND_CONF,
     COMMAND_COMMIT_MESSAGE,
+    COMMAND_MERGE,
 ]
 
 def get_exclude_spec():
     # 读取 .gitignore 文件
-    gitignore_path = os.path.join(os.getcwd(), '.gitignore')
+    gitignore_path = os.path.join(PROJECT_ROOT, '.gitignore')
     if os.path.exists(gitignore_path):
         with open(gitignore_path, 'r', encoding='utf-8') as f:
             gitignore_content = f.read()
@@ -89,47 +94,39 @@ def get_exclude_spec():
     return spec, final_exclude_dirs
 
 def get_all_file_names_in_project() -> List[str]:
-    project_root = os.getcwd()
     file_names = []
     final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
-    for root, dirs, files in os.walk(project_root):
+    for root, dirs, files in os.walk(PROJECT_ROOT):
         dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
         file_names.extend(files)
     return file_names
 
-
 def get_all_file_in_project() -> List[str]:
-    project_root = os.getcwd()
     file_names = []
     final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
-    for root, dirs, files in os.walk(project_root):
+    for root, dirs, files in os.walk(PROJECT_ROOT):
         dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
         for file in files:
             file_names.append(os.path.join(root, file))
     return file_names
 
-
 def get_all_file_in_project_with_dot() -> List[str]:
-    project_root = os.getcwd()
     file_names = []
     final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
-    for root, dirs, files in os.walk(project_root):
+    for root, dirs, files in os.walk(PROJECT_ROOT):
         dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
         for file in files:
-            file_names.append(os.path.join(root, file).replace(project_root, "."))
+            file_names.append(os.path.join(root, file).replace(PROJECT_ROOT, "."))
     return file_names
 
-
 def get_all_dir_names_in_project() -> List[str]:
-    project_root = os.getcwd()
     dir_names = []
     final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
-    for root, dirs, files in os.walk(project_root):
+    for root, dirs, files in os.walk(PROJECT_ROOT):
         dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
         for dir in dirs:
             dir_names.append(dir)
     return dir_names
-
 
 def generate_file_tree(root_dir, indent_char='    ', last_char='', level_char=''):
     file_tree = []
@@ -155,7 +152,6 @@ def generate_file_tree(root_dir, indent_char='    ', last_char='', level_char=''
     return "\n".join(file_tree)
 
 def find_files_in_project(patterns: List[str]) -> List[str]:
-    project_root = os.getcwd()
     matched_files = []
     spec, final_exclude_dirs = get_exclude_spec()
 
@@ -172,7 +168,7 @@ def find_files_in_project(patterns: List[str]) -> List[str]:
         else:
             is_added = False
             ## add files belongs to project
-            for root, dirs, files in os.walk(project_root):
+            for root, dirs, files in os.walk(PROJECT_ROOT):
                 dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
                 if pattern in files:
                     matched_files.append(os.path.join(root, pattern))
@@ -188,8 +184,6 @@ def find_files_in_project(patterns: List[str]) -> List[str]:
                 matched_files.append(pattern)
 
     return list(set(matched_files))
-
-
 
 class CommandCompleter(Completer):
     def __init__(self, commands):
@@ -335,7 +329,7 @@ def list_files():
         table = Table(title="Current Files")
         table.add_column("File", style="cyan")
         for file in current_files:
-            relative_path = os.path.relpath(file, os.getcwd())
+            relative_path = os.path.relpath(file, PROJECT_ROOT)
             table.add_row(relative_path)
         console = Console()
         console.print(table)
@@ -343,7 +337,7 @@ def list_files():
         logger.info(get_text('no_files'))
 
 def read_template(template_name):
-    project_dir = os.path.join(os.getcwd(), PROJECT_DIR_NAME)
+    project_dir = os.path.join(PROJECT_ROOT, PROJECT_DIR_NAME)
     template_path = os.path.join(project_dir, "template", template_name)
 
     if os.path.exists(template_path):
@@ -361,9 +355,30 @@ def read_template(template_name):
         with open(template_path, "r", encoding='utf-8') as template_file:
             return template_file.read()
 
+def get_user_input():
+    lines = []
+    while True:
+        line = prompt(FormattedText([("#00FF00", "> ")]), multiline=False)
+        line_lower = line.strip().lower()
+        if line_lower in ["eof", "/eof"]:
+            break 
+        elif line_lower in ["/clear"]:
+            lines = []
+            print("\033[2J\033[H")  # Clear terminal screen
+            continue
+        elif line_lower in ["/break"]:
+            raise Exception("User requested to break the operation.")
+        lines.append(line)
+    return "\n".join(lines)
+
+def merge_code_with_editblock(result: str):
+    editblock_similarity = memory["conf"].get("editblock_similarity", 0.8)
+    args = AutoCoderArgs(file="output.txt", source_dir=PROJECT_ROOT, editblock_similarity=editblock_similarity)
+    code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
+    code_auto_merge_editblock.merge_code(result)
+
 def coding(query):
-    project_root = os.getcwd()
-    files = generate_file_tree(project_root)
+    files = generate_file_tree(PROJECT_ROOT)
     files_code = "\n".join(
         [f"##File: {file}\n{open(file, encoding='utf-8').read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
@@ -371,7 +386,7 @@ def coding(query):
     template = read_template("code.txt")
     files_to_pass = files if memory["conf"].get("show_file_tree", False) else ""
     replaced_template = template.format(
-        project_root=project_root,
+        project_root=PROJECT_ROOT,
         files=files_to_pass,
         files_code=files_code,
         query=query
@@ -388,27 +403,14 @@ def coding(query):
 
     logger.info(get_text('coding_processed'))
 
-    #  使用Console接收用户输入
-    lines = []
-    while True:
-        line = prompt(FormattedText([("#00FF00", "> ")]), multiline=False)
-        line_lower = line.strip().lower()
-        if line_lower in ["eof", "/eof"]:
-            break 
-        elif line_lower in ["/clear"]:
-            lines = []
-            print("\033[2J\033[H")  # Clear terminal screen
-            continue
-        elif line_lower in ["/break"]:
-            raise Exception("User requested to break the operation.")
-        lines.append(line)
+    result = get_user_input()
+    merge_code_with_editblock(result)
 
-    result = "\n".join(lines)
-
-    editblock_similarity = memory["conf"].get("editblock_similarity", 0.8)
-    args = AutoCoderArgs(file="output.txt", source_dir=project_root, editblock_similarity=editblock_similarity)
-    code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
-    code_auto_merge_editblock.merge_code(result)
+def merge_code():
+    logger.info(get_text('merge_started'))
+    result = get_user_input()
+    merge_code_with_editblock(result)
+    logger.info(get_text('merge_completed'))
 
 def exclude_dirs(dir_names: List[str]):
     new_dirs = dir_names
@@ -433,6 +435,7 @@ def show_help():
     logger.info(get_text('commit_message_help'))
     logger.info(get_text('help_help'))
     logger.info(get_text('exit_help'))
+    logger.info(get_text('merge_help'))
 
 def init_project():
     """
@@ -449,7 +452,7 @@ def init_project():
             json.dump({"current_files": {"files": []}, "conf": {}}, f, indent=2, ensure_ascii=False)
         logger.info(f"Created directory {project_dir} and initialized {memory_file}")
 
-    gitignore_path = os.path.join(os.getcwd(), ".gitignore")
+    gitignore_path = os.path.join(PROJECT_ROOT, ".gitignore")
     if not os.path.exists(gitignore_path):
         with open(gitignore_path, "w", encoding='utf-8') as f:
             f.write(f"{PROJECT_DIR_NAME}/\noutput.txt\n")
@@ -609,6 +612,8 @@ def main(verbose=False):
                 show_help()
             elif user_input.startswith(COMMAND_EXIT):
                 raise EOFError()
+            elif user_input.startswith(COMMAND_MERGE):
+                merge_code()
             else:
                 logger.info(get_text('unknown_command'))
 
