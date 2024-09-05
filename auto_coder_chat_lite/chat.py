@@ -7,6 +7,7 @@ import traceback
 import argparse
 import logging
 import git
+from jinja2 import Environment, FileSystemLoader
 
 # 设置日志记录器
 logger = logging.getLogger(__name__)
@@ -341,24 +342,18 @@ def list_files():
     else:
         logger.info(get_text('no_files'))
 
-def read_template(template_name):
+def render_template(template_name, **kwargs):
     project_dir = os.path.join(PROJECT_ROOT, PROJECT_DIR_NAME)
-    template_path = os.path.join(project_dir, "template", template_name)
+    template_path_project = os.path.join(project_dir, "template")
+    template_path_current = os.path.join(os.path.dirname(os.path.abspath(__file__)), "template")
 
-    if os.path.exists(template_path):
-        with open(template_path, "r", encoding='utf-8') as template_file:
-            return template_file.read()
-    else:    
-        current_file_path = os.path.abspath(__file__)
-        current_dir = os.path.dirname(current_file_path)
-        template_path = os.path.join(current_dir, "template", template_name)
+    if os.path.exists(os.path.join(template_path_project, template_name)):
+        env = Environment(loader=FileSystemLoader(template_path_project))
+    else:
+        env = Environment(loader=FileSystemLoader(template_path_current))
 
-        if not os.path.exists(template_path):
-            logger.error(get_text('template_not_exist').format(template_path))
-            return None
-
-        with open(template_path, "r", encoding='utf-8') as template_file:
-            return template_file.read()
+    template = env.get_template(template_name)
+    return template.render(**kwargs)
 
 def get_user_input():
     lines = []
@@ -412,14 +407,7 @@ def coding(query):
         [f"##File: {file}\n{read_file(file)}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
 
-    template = read_template("code.txt")
-    files_to_pass = files if memory["conf"].get("show_file_tree", False) else ""
-    replaced_template = template.format(
-        project_root=PROJECT_ROOT,
-        files=files_to_pass,
-        files_code=files_code,
-        query=query
-    )
+    replaced_template = render_template("code.txt", project_root=PROJECT_ROOT, files=files if memory["conf"].get("show_file_tree", False) else "", files_code=files_code, query=query)
 
     with open("output.txt", "w", encoding='utf-8') as output_file:
         output_file.write(replaced_template)
@@ -510,13 +498,7 @@ def get_git_diff():
         logger.info(get_text('git_diff_error'))
         return ""
 
-def commit_message():
-    template = read_template("commit_message.txt")
-    if template is None:
-        return
-
-    git_diff = get_git_diff()
-    
+def get_language():
     # 增加常用映射,比如 zh: 中文,en: English, 简称对应语言全称, 不存在则返回English
     language_map = {
         "zh": "中文",
@@ -528,14 +510,12 @@ def commit_message():
     import locale
     try:
         language_code = locale.getdefaultlocale()[0].split('_')[0]
-        language = language_map.get(language_code, "English")
+        return language_map.get(language_code, "English")
     except:
-        language = "English"  # 默认语言为英语
+        return "English"  # 默
     
-    replaced_template = template.format(
-        git_diff=git_diff,
-        language=language
-    )
+def commit_message():
+    replaced_template = render_template("commit_message.txt", git_diff=get_git_diff(), language=get_language())
 
     with open("output.txt", "w", encoding='utf-8') as output_file:
         output_file.write(replaced_template)

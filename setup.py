@@ -21,6 +21,7 @@ setup(
         'rich==13.7.1',
         'wcwidth==0.2.13',
         'GitPython==3.1.43',
+        'Jinja2==3.1.4',
     ],
     entry_points='''
         [console_scripts]
