@@ -6,6 +6,7 @@ import subprocess
 import traceback
 import argparse
 import logging
+import git
 
 # 设置日志记录器
 logger = logging.getLogger(__name__)
@@ -494,20 +495,18 @@ def init_project():
                 f.write("output.txt\n")
 
 def get_git_diff():
+    repo = git.Repo(PROJECT_ROOT)
     try:
-        result = subprocess.run(['git', 'diff', '--cached'], capture_output=True, text=True)
-        diff_output = result.stdout.strip()
-        
+        diff_output = repo.git.diff(cached=True)
         if not diff_output:
-            result = subprocess.run(['git', 'diff'], capture_output=True, text=True)
-            diff_output = result.stdout.strip()
+            diff_output = repo.git.diff()
         
         if not diff_output:
             logger.info(get_text('git_diff_empty'))
             return ""
         
         return diff_output
-    except subprocess.CalledProcessError:
+    except git.GitCommandError as e:
         logger.info(get_text('git_diff_error'))
         return ""
 

@@ -52,6 +52,7 @@ The project relies on the following Python packages:
 - `pyperclip==1.9.0`
 - `rich==13.7.1`
 - `wcwidth==0.2.13`
+- `GitPython==3.1.43`
 
 These dependencies are automatically installed when you install `auto-coder-chat-lite` using pip.
 

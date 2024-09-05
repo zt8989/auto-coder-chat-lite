@@ -20,6 +20,7 @@ setup(
         'pyperclip==1.9.0',
         'rich==13.7.1',
         'wcwidth==0.2.13',
+        'GitPython==3.1.43',
     ],
     entry_points='''
         [console_scripts]
