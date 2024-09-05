@@ -517,12 +517,20 @@ def commit_message():
 
     git_diff = get_git_diff()
     
+    # 增加常用映射,比如 zh: 中文,en: English, 简称对应语言全称, 不存在则返回English
+    language_map = {
+        "zh": "中文",
+        "en": "English",
+        # 可以继续添加其他语言映射
+    }
+
     # 根据当前环境判断 language
     import locale
     try:
-        language = locale.getdefaultlocale()[0].split('_')[0]
+        language_code = locale.getdefaultlocale()[0].split('_')[0]
+        language = language_map.get(language_code, "English")
     except:
-        language = "en"  # 默认语言为英语
+        language = "English"  # 默认语言为英语
     
     replaced_template = template.format(
         git_diff=git_diff,
