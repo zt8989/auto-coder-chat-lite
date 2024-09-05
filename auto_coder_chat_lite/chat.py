@@ -407,7 +407,7 @@ def coding(query):
         [f"##File: {file}\n{read_file(file)}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
 
-    replaced_template = render_template("code.txt", project_root=PROJECT_ROOT, files=files if memory["conf"].get("show_file_tree", False) else "", files_code=files_code, query=query)
+    replaced_template = render_template("code.txt", files=files, files_code=files_code, query=query, show_file_tree=memory["conf"].get("show_file_tree", False))
 
     with open("output.txt", "w", encoding='utf-8') as output_file:
         output_file.write(replaced_template)
