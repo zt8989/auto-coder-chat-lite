@@ -308,6 +308,10 @@ def remove_files(file_names: List[str]):
     if "/all" in file_names:
         removed_files = memory["current_files"]["files"].copy()
         memory["current_files"]["files"] = []
+    elif "/clean" in file_names:
+        removed_files = [file for file in memory["current_files"]["files"] if not os.path.exists(file)]
+        for file in removed_files:
+            memory["current_files"]["files"].remove(file)
     else:
         removed_files = []
         for pattern in file_names:
@@ -377,10 +381,34 @@ def merge_code_with_editblock(result: str):
     code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
     code_auto_merge_editblock.merge_code(result)
 
+def read_file(file_path):
+    with open(file_path, encoding='utf-8') as f:
+        file_code = f.read()
+    
+    # 已知文件类型列表
+    known_file_types = {
+        '.py': 'python',
+        '.js': 'javascript',
+        '.html': 'html',
+        '.css': 'css',
+        '.md': 'markdown',
+        '.json': 'json',
+        '.txt': 'plaintext',
+        # 添加更多文件类型
+    }
+    
+    # 获取文件后缀
+    file_extension = os.path.splitext(file_path)[1]
+    
+    # 判断文件类型
+    file_type = known_file_types.get(file_extension, 'plaintext')
+    
+    return f"```{file_type}\n{file_code}\n```"
+    
 def coding(query):
     files = generate_file_tree(PROJECT_ROOT)
     files_code = "\n".join(
-        [f"##File: {file}\n{open(file, encoding='utf-8').read()}" for file in memory['current_files']['files'] if os.path.exists(file)]
+        [f"##File: {file}\n{read_file(file)}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
 
     template = read_template("code.txt")
