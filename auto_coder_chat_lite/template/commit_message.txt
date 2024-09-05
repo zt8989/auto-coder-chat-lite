@@ -1,6 +1,6 @@
 以下是git commit规范
 ```
-<emoji> <type>(<scope>): <subject>
+{% if ref_id %}[<ref_id>] {% endif %}<emoji> <type>(<scope>): <subject>
 
 <body>
 
@@ -19,4 +19,4 @@ chore：构建过程或辅助工具的变动
 {{ git_diff}}
 ```
 
-请为上述变更，按照规范生成一个commit message，并使用{{ language }}语言生成
+请为上述变更，按照规范生成一个commit message，并使用{{ language }}语言生成{% if ref_id %}其中ref_id为{{ ref_id }}{% endif %}。

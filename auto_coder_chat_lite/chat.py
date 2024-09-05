@@ -514,8 +514,8 @@ def get_language():
     except:
         return "English"  # 默
     
-def commit_message():
-    replaced_template = render_template("commit_message.txt", git_diff=get_git_diff(), language=get_language())
+def commit_message(ref_id=None):
+    replaced_template = render_template("commit_message.txt", git_diff=get_git_diff(), language=get_language(), ref_id=ref_id)
 
     with open("output.txt", "w", encoding='utf-8') as output_file:
         output_file.write(replaced_template)
@@ -629,7 +629,10 @@ def main(verbose=False):
                 else:
                     logger.info("Usage: /conf [<key> [<value>]]")
             elif user_input.startswith(COMMAND_COMMIT_MESSAGE):
-                commit_message()
+                ref_id = None
+                if ' ' in user_input:
+                    ref_id = user_input.split(' ')[1]
+                commit_message(ref_id)
             elif user_input.startswith(COMMAND_HELP):
                 show_help()
             elif user_input.startswith(COMMAND_EXIT):
