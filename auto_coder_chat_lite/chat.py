@@ -518,8 +518,16 @@ def commit_message():
 
     git_diff = get_git_diff()
     
+    # 根据当前环境判断 language
+    import locale
+    try:
+        language = locale.getdefaultlocale()[0].split('_')[0]
+    except:
+        language = "en"  # 默认语言为英语
+    
     replaced_template = template.format(
-        git_diff=git_diff
+        git_diff=git_diff,
+        language=language
     )
 
     with open("output.txt", "w", encoding='utf-8') as output_file:
