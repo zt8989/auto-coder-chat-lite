@@ -44,7 +44,7 @@ PROJECT_DIR_NAME = ".auto-coder-chat-lite"
 memory = {
     "conversation": [],
     "current_files": {"files": [], "groups": {}},
-    "conf": {"show_file_tree": False, "editblock_similarity": 0.8},
+    "conf": {"show_file_tree": True, "editblock_similarity": 0.8},
     "exclude_dirs": [],
     "mode": "normal",  # 新增mode字段,默认为normal模式
 }
@@ -53,6 +53,7 @@ defaut_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
 
 # 在文件顶部添加常量定义
 PROJECT_ROOT = os.getcwd()
+CURRENT_ROOT = PROJECT_ROOT  # 新增全局变量 CURRENT_ROOT，初始值等于 PROJECT_ROOT
 
 # 在文件顶部添加以下常量定义
 COMMAND_ADD_FILES = "/add_files"
@@ -65,6 +66,7 @@ COMMAND_COMMIT_MESSAGE = "/commit_message"
 COMMAND_HELP = "/help"
 COMMAND_EXIT = "/exit"
 COMMAND_MERGE = "/merge"
+COMMAND_CD = "/cd"  # 新增 /cd 命令
 
 # 更新commands列表
 commands = [
@@ -78,6 +80,7 @@ commands = [
     COMMAND_CONF,
     COMMAND_COMMIT_MESSAGE,
     COMMAND_MERGE,
+    COMMAND_CD,  # 新增 /cd 命令
 ]
 
 def get_exclude_spec():
@@ -212,6 +215,11 @@ class CommandCompleter(Completer):
                     if file_name.startswith(current_word):
                         yield Completion(file_name, start_position=-len(current_word))
             elif words[0] == COMMAND_EXCLUDE_DIRS:
+                current_word = words[-1]
+                for dir_name in self.all_dir_names:
+                    if dir_name.startswith(current_word):
+                        yield Completion(dir_name, start_position=-len(current_word))
+            elif words[0] == COMMAND_CD:
                 current_word = words[-1]
                 for dir_name in self.all_dir_names:
                     if dir_name.startswith(current_word):
@@ -409,12 +417,12 @@ def read_file(file_path):
     return f"```{file_type}\n{file_code}\n```"
     
 def coding(query):
-    files = generate_file_tree(PROJECT_ROOT)
+    files = generate_file_tree(CURRENT_ROOT)
     files_code = "\n".join(
         [f"##File: {file}\n{read_file(file)}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
 
-    replaced_template = render_template("code.txt", files=files, files_code=files_code, query=query, show_file_tree=memory["conf"].get("show_file_tree", False))
+    replaced_template = render_template("code.txt", files=files, project_root=CURRENT_ROOT, files_code=files_code, query=query, show_file_tree=memory["conf"].get("show_file_tree", False))
 
     with open("output.txt", "w", encoding='utf-8') as output_file:
         output_file.write(replaced_template)
@@ -457,6 +465,7 @@ def show_help():
     logger.info(get_text('list_files_help'))
     logger.info(get_text('coding_help'))
     logger.info(get_text('commit_message_help'))
+    logger.info(get_text('cd_help'))  # 新增 /cd 命令的帮助信息
     logger.info(get_text('merge_help'))
     logger.info(get_text('exit_help'))
 
@@ -646,6 +655,14 @@ def main(verbose=False):
                 raise EOFError()
             elif user_input.startswith(COMMAND_MERGE):
                 merge_code()
+            elif user_input.startswith(COMMAND_CD):
+                dir_name = user_input[len(COMMAND_CD):].strip()
+                if os.path.isdir(dir_name):
+                    global CURRENT_ROOT
+                    CURRENT_ROOT = os.path.abspath(dir_name)
+                    logger.info(f"Changed directory to: {CURRENT_ROOT}")
+                else:
+                    logger.info(f"Directory '{dir_name}' does not exist.")
             else:
                 logger.info(get_text('unknown_command'))
 

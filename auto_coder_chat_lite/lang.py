@@ -12,6 +12,7 @@ LANG = {
         'list_files_help': "  \033[94m/list_files\033[0m - \033[92mList all active files in the current session\033[0m",
         'coding_help': "  \033[94m/coding\033[0m \033[93m<query>\033[0m - \033[92mRequest the AI to modify code based on requirements\033[0m",
         'commit_message_help': "  \033[94m/commit_message\033[0m [\033[93m<ref_id>\033[0m] - \033[92mGenerate a commit message based on git diff with optional ref_id\033[0m",
+        'cd_help': "  \033[94m/cd\033[0m \033[93m<directory>\033[0m - \033[92mChange directory to the specified directory\033[0m",  # 新增 /cd 命令的帮助信息
         'exit_help': "  \033[94m/exit\033[0m - \033[92mExit the program\033[0m",
         'files_added': "Added files: {}",
         'no_files_added': "All specified files are already in the current session, or no matches found, or excluded by .gitignore and exclude_dirs.",
@@ -44,6 +45,7 @@ LANG = {
         'list_files_help': "  \033[94m/list_files\033[0m - \033[92m列出当前会话中的所有活动文件\033[0m",
         'coding_help': "  \033[94m/coding\033[0m \033[93m<查询>\033[0m - \033[92m请求AI根据需求修改代码\033[0m",
         'commit_message_help': "  \033[94m/commit_message\033[0m [\033[93m<ref_id>\033[0m] - \033[92m根据git diff生成提交信息，可选ref_id\033[0m",
+        'cd_help': "  \033[94m/cd\033[0m \033[93m<目录>\033[0m - \033[92m切换到指定目录\033[0m",  # 新增 /cd 命令的帮助信息
         'exit_help': "  \033[94m/exit\033[0m - \033[92m退出程序\033[0m",
         'files_added': "已添加文件：{}",
         'no_files_added': "所有指定的文件已在当前会话中，或未找到匹配项，或被.gitignore和exclude_dirs排除。",
