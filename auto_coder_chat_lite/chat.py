@@ -287,7 +287,14 @@ def load_memory():
 
 def add_files(args: List[str]):
     existing_files = memory["current_files"]["files"]
-    matched_files = find_files_in_project(args)
+    matched_files = []
+    
+    for arg in args:
+        if os.path.isabs(arg):  # 如果是绝对路径
+            if os.path.exists(arg):  # 检查文件是否存在
+                matched_files.append(arg)
+        else:
+            matched_files.extend(find_files_in_project([arg]))
     
     spec, final_exclude_dirs = get_exclude_spec()
     
