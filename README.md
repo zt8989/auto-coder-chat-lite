@@ -18,13 +18,15 @@ pip install auto-coder-chat-lite
 
 ## Usage
 
-After installation, you can run the tool using the following command:
+After installation, you can run the tool using the following commands:
+
+### `chat.code`
 
 ```bash
-code.chat
+chat.code
 ```
 
-This will start the interactive command-line interface where you can use the following commands:
+This command starts the interactive command-line interface for code chat and project scaffolding. You can use the following commands within this interface:
 
 - `/add_files <file1> <file2> ...` - Add files to the current session.
 - `/remove_files <file1> <file2> ...` - Remove files from the current session.
@@ -35,6 +37,27 @@ This will start the interactive command-line interface where you can use the fol
 - `/commit_message` - Generate a commit message based on Git diff.
 - `/help` - Show this help message.
 - `/exit` - Exit the program.
+
+### `chat.prompt`
+
+```bash
+chat.prompt
+```
+
+This command is used to render a template using Jinja2. It requires two arguments:
+
+- `template_path`: Path to the template file.
+- `text_path`: Path to the text file to be used as content.
+
+Optionally, you can specify an output file path using the `-o` or `--output_path` flag (default is `output.txt`).
+
+Example usage:
+
+```bash
+chat.prompt path/to/template.txt path/to/content.txt -o path/to/output.txt
+```
+
+This command will render the template with the provided content, save the result to the specified output file, and copy the rendered content to the clipboard.
 
 ## Dependencies
 

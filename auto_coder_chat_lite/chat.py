@@ -566,7 +566,7 @@ def main(verbose=False):
             prompt_message = [
                 ("class:username", "coding"),
                 ("class:at", "@"),
-                ("class:host", "code.chat"),
+                ("class:host", "chat.code"),
                 ("class:colon", ":"),
                 ("class:path", "~"),
                 ("class:dollar", "$ "),

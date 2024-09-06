@@ -25,7 +25,8 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        code.chat=auto_coder_chat_lite.chat:main
+        chat.code=auto_coder_chat_lite.chat:main
+        chat.prompt=auto_coder_chat_lite.prompt:main
     ''',
     author='cowboy',
     author_email='251027705@qq.com',

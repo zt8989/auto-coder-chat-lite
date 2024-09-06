@@ -20,11 +20,13 @@ pip install auto-coder-chat-lite
 
 安装后，你可以使用以下命令运行工具：
 
+### `chat.code`
+
 ```bash
-code.chat
+chat.code
 ```
 
-这将启动交互式命令行界面，你可以在其中使用以下命令：
+此命令启动用于代码聊天和项目脚手架的交互式命令行界面。你可以在该界面中使用以下命令：
 
 - `/add_files <file1> <file2> ...` - 添加文件到当前会话。
 - `/remove_files <file1> <file2> ...` - 从当前会话中删除文件。
@@ -35,6 +37,27 @@ code.chat
 - `/commit_message` - 根据Git差异生成提交消息。
 - `/help` - 显示帮助信息。
 - `/exit` - 退出程序。
+
+### `chat.prompt`
+
+```bash
+chat.prompt
+```
+
+此命令用于使用 Jinja2 渲染模板。它需要两个参数：
+
+- `template_path`: 模板文件的路径。
+- `text_path`: 作为内容使用的文本文件的路径。
+
+你还可以使用 `-o` 或 `--output_path` 标志指定输出文件路径（默认是 `output.txt`）。
+
+示例用法：
+
+```bash
+chat.prompt path/to/template.txt path/to/content.txt -o path/to/output.txt
+```
+
+此命令将使用提供的文本内容渲染模板，将结果保存到指定的输出文件，并将渲染后的内容复制到剪贴板。
 
 ## 依赖
 
