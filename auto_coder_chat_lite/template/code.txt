@@ -1,4 +1,4 @@
-如果你需要生成代码，对于每个需要更改的文件,你需要按 *SEARCH/REPLACE block* 的格式进行生成。
+如果你需要生成代码，对于每个需要更改的文件,你需要按 *SEARCH/REPLACE block* 的格式进行生成, 按照最小原则输出*SEARCH/REPLACE block*。
 
 # *SEARCH/REPLACE block* Rules:
 

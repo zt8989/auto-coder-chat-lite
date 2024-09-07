@@ -44,7 +44,7 @@ PROJECT_DIR_NAME = ".auto-coder-chat-lite"
 memory = {
     "conversation": [],
     "current_files": {"files": [], "groups": {}},
-    "conf": {"show_file_tree": True, "editblock_similarity": 0.8},
+    "conf": {"show_file_tree": True, "editblock_similarity": 0.8, "merge_type": "search_replace"},
     "exclude_dirs": [],
     "mode": "normal",  # 新增mode字段,默认为normal模式
 }
@@ -198,6 +198,8 @@ class CommandCompleter(Completer):
         self.all_dir_names = get_all_dir_names_in_project()
         self.all_files_with_dot = get_all_file_in_project_with_dot()
         self.current_file_names = []
+        self.conf_keys = ["show_file_tree", "editblock_similarity", "merge_type"]
+        self.merge_type_values = ["search_replace", "git_diff"]
 
     def get_completions(self, document, complete_event):
         text = document.text_before_cursor
@@ -260,6 +262,26 @@ class CommandCompleter(Completer):
                     for file_name in self.all_files:
                         if name in file_name and file_name not in target_set:
                             yield Completion(file_name, start_position=-len(name))
+            elif words[0] == COMMAND_CONF:
+                current_word = words[-1]
+                if len(words) == 1 and text[-1] == ' ':
+                    for key in self.conf_keys:
+                        yield Completion(key, start_position=0)
+                elif len(words) == 2 and text[-1] == ' ':
+                    key = words[1]
+                    if key == "merge_type":
+                        for key in self.merge_type_values:
+                            yield Completion(key, start_position=0)
+                elif len(words) == 2:
+                    for key in self.conf_keys:
+                        if key.startswith(current_word):
+                            yield Completion(key, start_position=-len(current_word))
+                elif len(words) == 3:
+                    key = words[1]
+                    if key == "merge_type":
+                        for value in self.merge_type_values:
+                            if value.startswith(current_word):
+                                yield Completion(value, start_position=-len(current_word))
             else:
                 for command in self.commands:
                     if command.startswith(text):
@@ -291,6 +313,8 @@ def load_memory():
     if os.path.exists(memory_path):
         with open(memory_path, "r", encoding='utf-8') as f:
             memory = json.load(f)
+        if "merge_type" not in memory["conf"]:
+            memory["conf"]["merge_type"] = "search_replace"
     completer.update_current_files(memory["current_files"]["files"])
 
 def add_files(args: List[str]):
@@ -621,6 +645,13 @@ def main(verbose=False):
                                 logger.info("Invalid value. Please provide a number between 0 and 1.")
                         except ValueError:
                             logger.info("Invalid value. Please provide a valid number.")
+                    elif key == "merge_type":
+                        if value in ["search_replace", "git_diff"]:
+                            memory["conf"][key] = value
+                            logger.info(f"Updated configuration: {key} = {value}")
+                            save_memory()  # 更新配置值后调用 save_memory 方法
+                        else:
+                            logger.info("Invalid value. Please provide 'search_replace' or 'git_diff'.")
                     else:
                         try:
                             value = float(value)
