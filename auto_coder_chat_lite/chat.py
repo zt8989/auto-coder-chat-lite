@@ -282,12 +282,12 @@ class CommandCompleter(Completer):
 completer = CommandCompleter(commands)
 
 def save_memory():
-    with open(os.path.join(PROJECT_DIR_NAME, "memory.json"), "w", encoding='utf-8') as f:
+    with open(os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME, "memory.json"), "w", encoding='utf-8') as f:
         json.dump(memory, f, indent=2, ensure_ascii=False)
 
 def load_memory():
     global memory
-    memory_path = os.path.join(PROJECT_DIR_NAME, "memory.json")
+    memory_path = os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME, "memory.json")
     if os.path.exists(memory_path):
         with open(memory_path, "r", encoding='utf-8') as f:
             memory = json.load(f)
@@ -660,6 +660,7 @@ def main(verbose=False):
                 if os.path.isdir(dir_name):
                     global CURRENT_ROOT
                     CURRENT_ROOT = os.path.abspath(dir_name)
+                    load_memory()
                     logger.info(f"Changed directory to: {CURRENT_ROOT}")
                 else:
                     logger.info(f"Directory '{dir_name}' does not exist.")
