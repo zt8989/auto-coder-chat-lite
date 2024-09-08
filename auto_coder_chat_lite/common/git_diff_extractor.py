@@ -1,3 +1,6 @@
+import os
+import subprocess
+import tempfile
 from typing import List
 from loguru import logger
 from rich.console import Console
@@ -34,14 +37,20 @@ class GitDiffExtractor:
 
     def apply_patch(self, diff_blocks: List[str]) -> bool:
         """
-        Apply the extracted git diff blocks using GitPython.
+        Apply the extracted git diff blocks using the patch command, log the output, and print the location of the temporary file without deleting it.
         """
         try:
             for diff_block in diff_blocks:
-                self.repo.git.apply(diff_block, check=True)
+                with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
+                    temp_file.write(diff_block)
+                    temp_file_path = temp_file.name
+                logger.info(f"Temporary patch file location: {temp_file_path}")
+                result = subprocess.run(["patch", "-p1", "-f", "-i", temp_file_path], check=True, capture_output=True, text=True)
+                logger.info(f"Patch command output:\n{result.stdout}")
             return True
-        except git.GitCommandError as e:
+        except subprocess.CalledProcessError as e:
             logger.error(f"Failed to apply patch: {e}")
+            logger.error(f"Patch command error output:\n{e.stderr}")
             return False
 
     def _print_unmerged_blocks(self, unmerged_blocks: List[tuple]):

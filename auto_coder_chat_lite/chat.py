@@ -37,6 +37,7 @@ from pathspec.patterns import GitWildMatchPattern
 from auto_coder_chat_lite.common import AutoCoderArgs
 from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
 from auto_coder_chat_lite.common.command_completer import CommandTextParser
+from auto_coder_chat_lite.common.git_diff_extractor import GitDiffExtractor
 from auto_coder_chat_lite.lang import get_text
 
 PROJECT_DIR_NAME = ".auto-coder-chat-lite"
@@ -411,10 +412,19 @@ def get_user_input():
     return "\n".join(lines)
 
 def merge_code_with_editblock(result: str):
-    editblock_similarity = memory["conf"].get("editblock_similarity", 0.8)
-    args = AutoCoderArgs(file="output.txt", source_dir=PROJECT_ROOT, editblock_similarity=editblock_similarity)
-    code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
-    code_auto_merge_editblock.merge_code(result)
+    merge_type = memory["conf"].get("merge_type", "search_replace")
+    if merge_type == "search_replace":
+        editblock_similarity = memory["conf"].get("editblock_similarity", 0.8)
+        args = AutoCoderArgs(file="output.txt", source_dir=PROJECT_ROOT, editblock_similarity=editblock_similarity)
+        code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
+        code_auto_merge_editblock.merge_code(result)
+    elif merge_type == "git_diff":
+        git_diff_extractor = GitDiffExtractor(PROJECT_ROOT)
+        diff_blocks = git_diff_extractor.extract_git_diff(result)
+        if git_diff_extractor.apply_patch(diff_blocks):
+            logger.info("Git diff applied successfully.")
+        else:
+            logger.warning("Failed to apply git diff.")
 
 def read_file(file_path):
     with open(file_path, encoding='utf-8') as f:
@@ -446,7 +456,7 @@ def coding(query):
         [f"##File: {file}\n{read_file(file)}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
 
-    replaced_template = render_template("code.txt", files=files, project_root=CURRENT_ROOT, files_code=files_code, query=query, show_file_tree=memory["conf"].get("show_file_tree", False))
+    replaced_template = render_template("code.txt", files=files, project_root=CURRENT_ROOT, files_code=files_code, query=query, **memory['conf'])
 
     with open("output.txt", "w", encoding='utf-8') as output_file:
         output_file.write(replaced_template)
