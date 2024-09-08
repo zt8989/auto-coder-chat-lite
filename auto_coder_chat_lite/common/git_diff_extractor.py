@@ -45,7 +45,7 @@ class GitDiffExtractor:
                     temp_file.write(diff_block)
                     temp_file_path = temp_file.name
                 logger.info(f"Temporary patch file location: {temp_file_path}")
-                result = subprocess.run(["patch", "-p1", "-f", "-i", temp_file_path], check=True, capture_output=True, text=True)
+                result = subprocess.run(["patch", "-p1", "-f", "--no-backup-if-mismatch", "-i", temp_file_path], check=True, capture_output=True, text=True)
                 logger.info(f"Patch command output:\n{result.stdout}")
             return True
         except subprocess.CalledProcessError as e:

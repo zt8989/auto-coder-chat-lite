@@ -70,6 +70,10 @@ COMMAND_MERGE = "/merge"
 COMMAND_CD = "/cd"  # 新增 /cd 命令
 
 # 更新commands列表
+# 新增常量定义
+MERGE_TYPE_SEARCH_REPLACE = "search_replace"
+MERGE_TYPE_GIT_DIFF = "git_diff"
+
 commands = [
     COMMAND_ADD_FILES,
     COMMAND_REMOVE_FILES,
@@ -413,7 +417,7 @@ def get_user_input():
 
 def merge_code_with_editblock(result: str):
     merge_type = memory["conf"].get("merge_type", "search_replace")
-    if merge_type == "search_replace":
+    if merge_type == MERGE_TYPE_SEARCH_REPLACE:
         editblock_similarity = memory["conf"].get("editblock_similarity", 0.8)
         args = AutoCoderArgs(file="output.txt", source_dir=PROJECT_ROOT, editblock_similarity=editblock_similarity)
         code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
@@ -656,7 +660,7 @@ def main(verbose=False):
                         except ValueError:
                             logger.info("Invalid value. Please provide a valid number.")
                     elif key == "merge_type":
-                        if value in ["search_replace", "git_diff"]:
+                        if value in [MERGE_TYPE_SEARCH_REPLACE, MERGE_TYPE_GIT_DIFF]:
                             memory["conf"][key] = value
                             logger.info(f"Updated configuration: {key} = {value}")
                             save_memory()  # 更新配置值后调用 save_memory 方法
