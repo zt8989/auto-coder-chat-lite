@@ -132,7 +132,7 @@ class CodeAutoMergeEditBlock:
             result.append((edit.path, "\n".join(heads), "\n".join(updates)))
         return result
 
-    def merge_code(self, content: str, force_skip_git: bool = False):
+    def merge_code(self, content: str, force_skip_git: bool = False, confirm: bool = False):
         file_content = open(self.args.file, encoding='utf-8').read()
         md5 = hashlib.md5(file_content.encode("utf-8")).hexdigest()
         file_name = os.path.basename(self.args.file)

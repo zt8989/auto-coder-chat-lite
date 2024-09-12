@@ -21,8 +21,11 @@ from rich.console import Console
 from rich.table import Table
 from rich.spinner import Spinner
 from rich.live import Live
+from rich.text import Text
+from rich.panel import Panel
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
+import shutil
 
 from auto_coder_chat_lite.agent import external_chat_completion
 from auto_coder_chat_lite.common import AutoCoderArgs
@@ -399,6 +402,14 @@ def render_template(template_name, **kwargs):
     return template.render(**kwargs)
 
 def get_user_input():
+    """
+    Collects user input until the user signals the end of input.
+    
+    The function prompts the user for input line by line. The user can signal the end of input by typing 'eof' or '/eof'.
+    The user can also clear the current input by typing '/clear' or break the operation by typing '/break'.
+    
+    :return: A string containing all the lines of user input joined by newline characters.
+    """
     lines = []
     while True:
         line = prompt(FormattedText([("#00FF00", "> ")]), multiline=False)
@@ -415,12 +426,18 @@ def get_user_input():
     return "\n".join(lines)
 
 def merge_code_with_editblock(result: str):
+    """
+    Merge the provided code result using the configured merge type.
+    
+    :param result: The code result to be merged.
+    """
+    confirm = memory["conf"].get("merge_confirmation", False)
     merge_type = memory["conf"].get("merge_type", "search_replace")
     if merge_type == MERGE_TYPE_SEARCH_REPLACE:
         editblock_similarity = memory["conf"].get("editblock_similarity", 0.8)
         args = AutoCoderArgs(file="output.txt", source_dir=PROJECT_ROOT, editblock_similarity=editblock_similarity)
         code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
-        code_auto_merge_editblock.merge_code(result)
+        code_auto_merge_editblock.merge_code(result, confirm=confirm)
     elif merge_type == "git_diff":
         git_diff_extractor = GitDiffExtractor(PROJECT_ROOT)
         diff_blocks = git_diff_extractor.extract_git_diff(result)
@@ -454,6 +471,11 @@ def read_file(file_path):
     return f"```{file_type}\n{file_code}\n```"
     
 def coding(query):
+    """
+    Process the coding query and generate or prompt for code based on the provided context.
+
+    :param query: The user's coding query.
+    """
     files = generate_file_tree(CURRENT_ROOT)
     files_code = "\n".join(
         [f"##File: {file}\n{read_file(file)}" for file in memory['current_files']['files'] if os.path.exists(file)]
@@ -470,13 +492,34 @@ def coding(query):
             {"role": "user", "content": replaced_template}
         ]
         spinner = Spinner("dots", text="[cyan]Generating code...")
-        with Live(spinner, refresh_per_second=10):
-            response = external_chat_completion(messages)
-        if response:
-            result = response.choices[0].message.content.strip()
-        else:
-            logger.error("Failed to generate code.")
-            return
+        result = ""
+
+        terminal_height = shutil.get_terminal_size()[1]
+
+        with Live(refresh_per_second=4) as live:
+            response = external_chat_completion(messages, stream=True)
+            if response:
+                result = ""
+                output = []
+                for chunk in response:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        result += chunk.choices[0].delta.content
+                        output = result.splitlines()
+                        # Trim output_text to fit within terminal height
+                        if len(output) > terminal_height - 2:
+                            output_text = Text("\n".join(output[-terminal_height + 2:]))
+                        else:
+                            output_text = Text(result)
+                        live.update(
+                            Panel(
+                                output_text,
+                                title="Generating Code",
+                                border_style="green",
+                            )
+                        )
+            else:
+                logger.error("Failed to generate code.")
+                return
     else:
 
         try:

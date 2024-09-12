@@ -7,7 +7,7 @@ def get_client_from_config(config):
     """
     Create and return an OpenAI client using the provided configuration.
     
-    :param config: A dictionary containing 'api_key' and 'base_url'.
+    :param config: A dictionary containing 'api_key', 'base_url', and 'model'.
     :return: An OpenAI client instance.
     """
     return Client(api_key=config['api_key'], base_url=config['base_url'])
@@ -26,7 +26,7 @@ def initialize_config_manager():
     config_manager = ConfigManager(config_file_path)
     return config_manager
 
-def create_chat_completion(client, model, messages, max_tokens=None):
+def create_chat_completion(client, model, messages, max_tokens=None, stream=False):
     """
     Create a chat completion using the OpenAI API.
     
@@ -34,27 +34,30 @@ def create_chat_completion(client, model, messages, max_tokens=None):
     :param model: The model to use for the chat completion.
     :param messages: A list of message objects.
     :param max_tokens: The maximum number of tokens to generate. If None, no limit is applied.
+    :param stream: Whether to stream the response.
     :return: The response from the OpenAI API.
     """
     return client.chat.completions.create(
         model=model,
         messages=messages,
-        max_tokens=max_tokens
+        max_tokens=max_tokens,
+        stream=stream
     )
 
-def external_chat_completion(messages, max_tokens=None):
+def external_chat_completion(messages, max_tokens=None, stream=False):
     """
     Create a chat completion using the OpenAI API from an external system.
     
     :param messages: A list of message objects.
     :param max_tokens: The maximum number of tokens to generate.
+    :param stream: Whether to stream the response.
     :return: The response from the OpenAI API or None if the call fails.
     """
     config_manager = initialize_config_manager()
     config = config_manager.load()
     client = get_client_from_config(config)
     try:
-        response = create_chat_completion(client, config['model'], messages, max_tokens)
+        response = create_chat_completion(client, config['model'], messages, max_tokens, stream)
         return response
     except Exception as e:
         print(f"OpenAI API call failed: {e}")
