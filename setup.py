@@ -28,6 +28,7 @@ setup(
         [console_scripts]
         chat.code=auto_coder_chat_lite.chat:main
         chat.prompt=auto_coder_chat_lite.prompt:main
+        chat.agent=auto_coder_chat_lite.agent:main
     ''',
     author='cowboy',
     author_email='251027705@qq.com',
