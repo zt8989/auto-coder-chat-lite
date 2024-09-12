@@ -133,6 +133,13 @@ class CodeAutoMergeEditBlock:
         return result
 
     def merge_code(self, content: str, force_skip_git: bool = False, confirm: bool = False):
+        """
+        Merge the provided code content into the existing files.
+
+        :param content: The code content to be merged.
+        :param force_skip_git: Whether to force skip the git check.
+        :param confirm: Whether to confirm each change before applying it.
+        """
         file_content = open(self.args.file, encoding='utf-8').read()
         md5 = hashlib.md5(file_content.encode("utf-8")).hexdigest()
         file_name = os.path.basename(self.args.file)
@@ -141,6 +148,7 @@ class CodeAutoMergeEditBlock:
         changes_to_make = []
         changes_made = False
         unmerged_blocks = []
+        auto_confirm = False
 
         # First, check if there are any changes to be made
         file_content_mapping = {}
@@ -162,9 +170,24 @@ class CodeAutoMergeEditBlock:
                     else existing_content + "\n" + update
                 )
                 if new_content != existing_content:
-                    changes_to_make.append((file_path, existing_content, new_content))
-                    file_content_mapping[file_path] = new_content
-                    changes_made = True
+                    if confirm and not auto_confirm:
+                        print_unmerged_blocks([(file_path, head, update, 1.0)])
+                        user_input = input("是否合并?((A)ll/(Y)es/(N)o/(A)bort): ").strip().lower()
+                        if user_input == 'a':
+                            auto_confirm = True
+                        elif user_input == 'y':
+                            changes_to_make.append((file_path, existing_content, new_content))
+                            file_content_mapping[file_path] = new_content
+                            changes_made = True
+                        elif user_input == 'n':
+                            continue
+                        elif user_input == 'abort':
+                            logger.info("合并操作已中止。")
+                            return
+                    else:
+                        changes_to_make.append((file_path, existing_content, new_content))
+                        file_content_mapping[file_path] = new_content
+                        changes_made = True
                 else:
                     ## If the SEARCH BLOCK is not found exactly, then try to use
                     ## the similarity ratio to find the best matching block
@@ -174,11 +197,28 @@ class CodeAutoMergeEditBlock:
                     if similarity > self.args.editblock_similarity:
                         new_content = existing_content.replace(best_window, update, 1)
                         if new_content != existing_content:
-                            changes_to_make.append(
-                                (file_path, existing_content, new_content)
-                            )
-                            file_content_mapping[file_path] = new_content
-                            changes_made = True
+                            if confirm and not auto_confirm:
+                                print_unmerged_blocks([(file_path, head, update, similarity)])
+                                user_input = input("是否合并?((A)ll/(Y)es/(N)o/(A)bort): ").strip().lower()
+                                if user_input == 'a':
+                                    auto_confirm = True
+                                elif user_input == 'y':
+                                    changes_to_make.append(
+                                        (file_path, existing_content, new_content)
+                                    )
+                                    file_content_mapping[file_path] = new_content
+                                    changes_made = True
+                                elif user_input == 'n':
+                                    continue
+                                elif user_input == 'abort':
+                                    logger.info("合并操作已中止。")
+                                    return
+                            else:
+                                changes_to_make.append(
+                                    (file_path, existing_content, new_content)
+                                )
+                                file_content_mapping[file_path] = new_content
+                                changes_made = True
                     else:
                         unmerged_blocks.append((file_path, head, update, similarity))
 
