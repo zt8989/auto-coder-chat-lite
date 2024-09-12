@@ -9,6 +9,29 @@ import logging
 import git
 from jinja2 import Environment, FileSystemLoader
 
+from typing import List
+from prompt_toolkit import PromptSession, prompt
+from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.styles import Style
+from prompt_toolkit.formatted_text import FormattedText
+from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.key_binding import KeyBindings
+from rich.console import Console
+from rich.table import Table
+from rich.spinner import Spinner
+from rich.live import Live
+from pathspec import PathSpec
+from pathspec.patterns import GitWildMatchPattern
+
+from auto_coder_chat_lite.agent import external_chat_completion
+from auto_coder_chat_lite.common import AutoCoderArgs
+from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
+from auto_coder_chat_lite.common.command_completer import CommandTextParser
+from auto_coder_chat_lite.common.git_diff_extractor import GitDiffExtractor
+from auto_coder_chat_lite.lang import get_text
+from auto_coder_chat_lite.common.config_manager import ConfigManager
+
 # 设置日志记录器
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -21,24 +44,6 @@ logger.addHandler(console_handler)
 if platform.system() == "Windows":
     from colorama import init
     init()
-
-from typing import List
-from prompt_toolkit import PromptSession, prompt
-from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.styles import Style
-from prompt_toolkit.formatted_text import FormattedText
-from prompt_toolkit.completion import Completer, Completion
-from rich.console import Console
-from rich.table import Table
-from pathspec import PathSpec
-from pathspec.patterns import GitWildMatchPattern
-
-from auto_coder_chat_lite.common import AutoCoderArgs
-from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
-from auto_coder_chat_lite.common.command_completer import CommandTextParser
-from auto_coder_chat_lite.common.git_diff_extractor import GitDiffExtractor
-from auto_coder_chat_lite.lang import get_text
 
 PROJECT_DIR_NAME = ".auto-coder-chat-lite"
 
@@ -309,17 +314,15 @@ class CommandCompleter(Completer):
 completer = CommandCompleter(commands)
 
 def save_memory():
-    with open(os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME, "memory.json"), "w", encoding='utf-8') as f:
-        json.dump(memory, f, indent=2, ensure_ascii=False)
+    config_manager = ConfigManager(os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME, "memory.json"))
+    config_manager.save(memory)
 
 def load_memory():
     global memory
-    memory_path = os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME, "memory.json")
-    if os.path.exists(memory_path):
-        with open(memory_path, "r", encoding='utf-8') as f:
-            memory = json.load(f)
-        if "merge_type" not in memory["conf"]:
-            memory["conf"]["merge_type"] = "search_replace"
+    config_manager = ConfigManager(os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME, "memory.json"))
+    memory = config_manager.load()
+    if "merge_type" not in memory["conf"]:
+        memory["conf"]["merge_type"] = "search_replace"
     completer.update_current_files(memory["current_files"]["files"])
 
 def add_files(args: List[str]):
@@ -574,18 +577,72 @@ def commit_message(ref_id=None):
     with open("output.txt", "w", encoding='utf-8') as output_file:
         output_file.write(replaced_template)
 
-    try:
-        import pyperclip
-        pyperclip.copy(replaced_template)
-        logger.info(get_text('commit_message_generated'))
-    except ImportError:
-        logger.info(get_text('pyperclip_not_installed'))
+    if memory["conf"].get("human_as_model", True) == False:
+        git_diff = get_git_diff()
+        if not git_diff:
+            logger.info("No changes to commit.")
+            return
 
-    logger.info(get_text('commit_message_saved'))
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant that generates git commit messages."},
+            {"role": "user", "content": replaced_template}
+        ]
+
+        spinner = Spinner("dots", text="[cyan]Generating commit message...")
+        with Live(spinner, refresh_per_second=10):
+            response = external_chat_completion(messages)
+        if response:
+            commit_message = response.choices[0].message.content.strip()
+            # Remove triple backticks if present
+            if commit_message.startswith("```") and commit_message.endswith("```"):
+                commit_message = commit_message[3:-3].strip()
+            console = Console()
+            console.print(f"[bold green]Generated Commit Message:[/bold green]")
+            for line in commit_message.splitlines():
+                console.print(line)
+            user_input = prompt("Do you want to commit with this message? (Y/n): ")
+            if user_input.lower() != 'n':
+                repo = git.Repo(PROJECT_ROOT)
+                if not repo.index.diff("HEAD"):  # Check if there are staged files
+                    repo.git.add(A=True)
+                repo.index.commit(commit_message)
+                logger.info("Changes committed successfully.")
+            else:
+                logger.info("Commit aborted by user.")
+        else:
+            logger.error("Failed to generate commit message.")
+    else:
+        try:
+            import pyperclip
+            pyperclip.copy(replaced_template)
+            logger.info(get_text('commit_message_generated'))
+        except ImportError:
+            logger.info(get_text('pyperclip_not_installed'))
+
+        logger.info(get_text('commit_message_saved'))
 
 def main(verbose=False):
     init_project()
     load_memory()
+
+    kb = KeyBindings()
+
+    @kb.add("c-n")
+    def _(event):
+        if "human_as_model" not in memory["conf"]:
+            memory["conf"]["human_as_model"] = True
+
+        current_status = memory["conf"]["human_as_model"]
+        new_status = not current_status
+        memory["conf"]["human_as_model"] = new_status
+        save_memory()
+        event.app.invalidate()
+
+    def get_bottom_toolbar():
+        human_as_model = memory["conf"].get("human_as_model", True)
+        return (
+            f" Model: {'human' if human_as_model else 'openai'} (ctl+n)"
+        )
 
     session = PromptSession(
         history=InMemoryHistory(),
@@ -593,6 +650,8 @@ def main(verbose=False):
         enable_history_search=False,
         completer=completer,
         complete_while_typing=True,
+        key_bindings=kb,
+        bottom_toolbar=get_bottom_toolbar
     )
 
     logger.info("\033[1;34m" + get_text('type_help') + "\033[0m")
