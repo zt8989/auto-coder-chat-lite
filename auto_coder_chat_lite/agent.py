@@ -4,9 +4,20 @@ from openai import Client
 from auto_coder_chat_lite.common.config_manager import ConfigManager
 
 def get_client_from_config(config):
+    """
+    Create and return an OpenAI client using the provided configuration.
+    
+    :param config: A dictionary containing 'api_key' and 'base_url'.
+    :return: An OpenAI client instance.
+    """
     return Client(api_key=config['api_key'], base_url=config['base_url'])
 
 def initialize_config_manager():
+    """
+    Initialize and return a ConfigManager instance.
+    
+    :return: A ConfigManager instance.
+    """
     home_dir = os.path.expanduser("~")
     config_dir = os.path.join(home_dir, '.auto_coder_chat_lite')
     os.makedirs(config_dir, exist_ok=True)
@@ -16,6 +27,15 @@ def initialize_config_manager():
     return config_manager
 
 def create_chat_completion(client, model, messages, max_tokens=5):
+    """
+    Create a chat completion using the OpenAI API.
+    
+    :param client: An OpenAI client instance.
+    :param model: The model to use for the chat completion.
+    :param messages: A list of message objects.
+    :param max_tokens: The maximum number of tokens to generate.
+    :return: The response from the OpenAI API.
+    """
     return client.chat.completions.create(
         model=model,
         messages=messages,
@@ -23,6 +43,9 @@ def create_chat_completion(client, model, messages, max_tokens=5):
     )
 
 def main():
+    """
+    Main function to handle command-line arguments and perform actions.
+    """
     parser = argparse.ArgumentParser(description="Agent script for auto_coder_chat_lite")
     parser.add_argument('action', nargs='?', default='setup', help='Action to perform (default: setup)')
     parser.add_argument('--base_url', default='https://api.deepseek.com', help='Base URL for OpenAI API')
