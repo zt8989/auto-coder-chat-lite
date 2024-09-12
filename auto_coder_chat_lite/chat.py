@@ -31,6 +31,22 @@ from auto_coder_chat_lite.common.command_completer import CommandTextParser
 from auto_coder_chat_lite.common.git_diff_extractor import GitDiffExtractor
 from auto_coder_chat_lite.lang import get_text
 from auto_coder_chat_lite.common.config_manager import ConfigManager
+from auto_coder_chat_lite.constants import (
+    PROJECT_DIR_NAME,
+    COMMAND_ADD_FILES,
+    COMMAND_REMOVE_FILES,
+    COMMAND_LIST_FILES,
+    COMMAND_CODING,
+    COMMAND_EXCLUDE_DIRS,
+    COMMAND_CONF,
+    COMMAND_COMMIT_MESSAGE,
+    COMMAND_HELP,
+    COMMAND_EXIT,
+    COMMAND_MERGE,
+    COMMAND_CD,
+    MERGE_TYPE_SEARCH_REPLACE,
+    MERGE_TYPE_GIT_DIFF,
+)
 
 # 设置日志记录器
 logger = logging.getLogger(__name__)
@@ -45,8 +61,6 @@ if platform.system() == "Windows":
     from colorama import init
     init()
 
-PROJECT_DIR_NAME = ".auto-coder-chat-lite"
-
 memory = {
     "conversation": [],
     "current_files": {"files": [], "groups": {}},
@@ -60,24 +74,6 @@ defaut_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
 # 在文件顶部添加常量定义
 PROJECT_ROOT = os.getcwd()
 CURRENT_ROOT = PROJECT_ROOT  # 新增全局变量 CURRENT_ROOT，初始值等于 PROJECT_ROOT
-
-# 在文件顶部添加以下常量定义
-COMMAND_ADD_FILES = "/add_files"
-COMMAND_REMOVE_FILES = "/remove_files"
-COMMAND_LIST_FILES = "/list_files"
-COMMAND_CODING = "/coding"
-COMMAND_EXCLUDE_DIRS = "/exclude_dirs"
-COMMAND_CONF = "/conf"
-COMMAND_COMMIT_MESSAGE = "/commit_message"
-COMMAND_HELP = "/help"
-COMMAND_EXIT = "/exit"
-COMMAND_MERGE = "/merge"
-COMMAND_CD = "/cd"  # 新增 /cd 命令
-
-# 更新commands列表
-# 新增常量定义
-MERGE_TYPE_SEARCH_REPLACE = "search_replace"
-MERGE_TYPE_GIT_DIFF = "git_diff"
 
 commands = [
     COMMAND_ADD_FILES,
@@ -468,15 +464,31 @@ def coding(query):
     with open("output.txt", "w", encoding='utf-8') as output_file:
         output_file.write(replaced_template)
 
-    try:
-        import pyperclip
-        pyperclip.copy(replaced_template)
-    except ImportError:
-        logger.info(get_text('pyperclip_not_installed'))
+    if not memory["conf"].get("human_as_model", True):
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant that generates code based on the provided context and query."},
+            {"role": "user", "content": replaced_template}
+        ]
+        spinner = Spinner("dots", text="[cyan]Generating code...")
+        with Live(spinner, refresh_per_second=10):
+            response = external_chat_completion(messages)
+        if response:
+            result = response.choices[0].message.content.strip()
+        else:
+            logger.error("Failed to generate code.")
+            return
+    else:
 
-    logger.info(get_text('coding_processed'))
+        try:
+            import pyperclip
+            pyperclip.copy(replaced_template)
+        except ImportError:
+            logger.info(get_text('pyperclip_not_installed'))
 
-    result = get_user_input()
+        logger.info(get_text('coding_processed'))
+
+        result = get_user_input()
+
     merge_code_with_editblock(result)
 
 def merge_code():
@@ -640,8 +652,9 @@ def main(verbose=False):
 
     def get_bottom_toolbar():
         human_as_model = memory["conf"].get("human_as_model", True)
+        merge_confirm = memory["conf"].get("merge_confirmation", False)
         return (
-            f" Model: {'human' if human_as_model else 'openai'} (ctl+n)"
+            f" Model: {'human' if human_as_model else 'openai'} (ctl+n) | Merge Confirm: {'on' if merge_confirm else 'off'}"
         )
 
     session = PromptSession(
@@ -725,6 +738,13 @@ def main(verbose=False):
                             save_memory()  # 更新配置值后调用 save_memory 方法
                         else:
                             logger.info("Invalid value. Please provide 'search_replace' or 'git_diff'.")
+                    elif key == "merge_confirmation":
+                        if value.lower() in ["true", "false"]:
+                            memory["conf"][key] = value.lower() == "true"
+                            logger.info(f"Updated configuration: {key} = {memory['conf'][key]}")
+                            save_memory()  # 更新配置值后调用 save_memory 方法
+                        else:
+                            logger.info("Invalid value. Please provide 'true' or 'false'.")
                     else:
                         try:
                             value = float(value)

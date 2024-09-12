@@ -1,6 +1,7 @@
 import os
 from auto_coder_chat_lite.common import AutoCoderArgs
 from auto_coder_chat_lite.common.text import TextSimilarity
+from auto_coder_chat_lite.common.utils import print_unmerged_blocks
 from auto_coder_chat_lite.utils.queue_communicate import (
     queue_communicate,
     CommunicateEvent,
@@ -12,9 +13,6 @@ from loguru import logger
 import hashlib
 import subprocess
 import tempfile
-from rich.console import Console
-from rich.panel import Panel
-from rich.syntax import Syntax
 import json
 
 
@@ -187,7 +185,7 @@ class CodeAutoMergeEditBlock:
         if unmerged_blocks:
             s = f"Found {len(unmerged_blocks)} unmerged blocks, the changes will not be applied. Please review them manually then try again."
             logger.warning(s)
-            self._print_unmerged_blocks(unmerged_blocks)
+            print_unmerged_blocks(unmerged_blocks)
             return
 
         ## lint check
@@ -231,18 +229,3 @@ class CodeAutoMergeEditBlock:
             )
         else:
             logger.warning("No changes were made to any files.")
-
-    def _print_unmerged_blocks(self, unmerged_blocks: List[tuple]):
-        console = Console()
-        console.print("\n[bold red]Unmerged Blocks:[/bold red]")
-        for file_path, head, update, similarity in unmerged_blocks:
-            console.print(f"\n[bold blue]File:[/bold blue] {file_path}")
-            console.print(f"\n[bold green]Search Block({similarity}):[/bold green]")
-            syntax = Syntax(head, "python", theme="monokai", line_numbers=True)
-            console.print(Panel(syntax, expand=False))
-            console.print("\n[bold yellow]Replace Block:[/bold yellow]")
-            syntax = Syntax(update, "python", theme="monokai", line_numbers=True)
-            console.print(Panel(syntax, expand=False))
-        console.print(
-            f"\n[bold red]Total unmerged blocks: {len(unmerged_blocks)}[/bold red]"
-        )
