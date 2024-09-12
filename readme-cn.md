@@ -77,6 +77,7 @@ chat.prompt path/to/template.txt path/to/content.txt -o path/to/output.txt
 - `wcwidth==0.2.13`
 - `GitPython==3.1.43`
 - `Jinja2==3.1.4`
+- `openai==1.44.1`
 
 这些依赖在安装 `auto-coder-chat-lite` 时会自动安装。
 

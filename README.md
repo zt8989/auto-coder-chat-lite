@@ -77,6 +77,7 @@ The project relies on the following Python packages:
 - `wcwidth==0.2.13`
 - `GitPython==3.1.43`
 - `Jinja2==3.1.4`
+- `openai==1.44.1`
 
 These dependencies are automatically installed when you install `auto-coder-chat-lite` using pip.
 
