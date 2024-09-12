@@ -172,7 +172,7 @@ class CodeAutoMergeEditBlock:
                 if new_content != existing_content:
                     if confirm and not auto_confirm:
                         print_unmerged_blocks([(file_path, head, update, 1.0)])
-                        user_input = input("是否合并?((A)ll/(Y)es/(N)o/(A)bort): ").strip().lower()
+                        user_input = input("是否合并?((A)ll/(Y)es/(N)o/A(b)ort): ").strip().lower()
                         if user_input == 'a':
                             auto_confirm = True
                         elif user_input == 'y':
@@ -181,7 +181,7 @@ class CodeAutoMergeEditBlock:
                             changes_made = True
                         elif user_input == 'n':
                             continue
-                        elif user_input == 'abort':
+                        elif user_input == 'b':
                             logger.info("合并操作已中止。")
                             return
                     else:
@@ -199,7 +199,7 @@ class CodeAutoMergeEditBlock:
                         if new_content != existing_content:
                             if confirm and not auto_confirm:
                                 print_unmerged_blocks([(file_path, head, update, similarity)])
-                                user_input = input("是否合并?((A)ll/(Y)es/(N)o/(A)bort): ").strip().lower()
+                                user_input = input("是否合并?((A)ll/(Y)es/(N)o/A(b)ort): ").strip().lower()
                                 if user_input == 'a':
                                     auto_confirm = True
                                 elif user_input == 'y':
@@ -210,7 +210,7 @@ class CodeAutoMergeEditBlock:
                                     changes_made = True
                                 elif user_input == 'n':
                                     continue
-                                elif user_input == 'abort':
+                                elif user_input == 'b':
                                     logger.info("合并操作已中止。")
                                     return
                             else:
