@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='auto_coder_chat_lite',
-    version='0.1.8',
+    version='0.1.9',
     packages=find_packages(where='.'),
     package_dir={'': '.'},
     include_package_data=True,
