@@ -37,6 +37,8 @@ LANG = {
         'merge_help': "  \033[94m/merge\033[0m - \033[92mMerge code changes\033[0m",
         'merge_started': "Starting code merge...",
         'merge_completed': "Code merge completed",
+        'confirm_merge': "Confirm merge? ((A)ll/(Y)es/(N)o/A(b)ort): ",
+        'merge_operation_aborted': "Merge operation aborted.",
     },
     'zh': {
         'help_message': "\033[1m支持的命令：\033[0m",
@@ -70,6 +72,8 @@ LANG = {
         'merge_help': "  \033[94m/merge\033[0m - \033[92m合并代码更改\033[0m",
         'merge_started': "开始合并代码...",
         'merge_completed': "代码合并完成",
+        'confirm_merge': "是否合并?((A)ll/(Y)es/(N)o/A(b)ort): ",
+        'merge_operation_aborted': "合并操作已中止。",
     }
 }
 

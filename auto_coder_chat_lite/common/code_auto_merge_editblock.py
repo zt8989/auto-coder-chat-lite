@@ -1,7 +1,8 @@
 import os
 from auto_coder_chat_lite.common import AutoCoderArgs
 from auto_coder_chat_lite.common.text import TextSimilarity
-from auto_coder_chat_lite.common.utils import print_unmerged_blocks
+from auto_coder_chat_lite.common.utils import print_diff_blocks, print_unmerged_blocks
+from auto_coder_chat_lite.lang import get_text
 from auto_coder_chat_lite.utils.queue_communicate import (
     queue_communicate,
     CommunicateEvent,
@@ -171,18 +172,18 @@ class CodeAutoMergeEditBlock:
                 )
                 if new_content != existing_content:
                     if confirm and not auto_confirm:
-                        print_unmerged_blocks([(file_path, head, update, 1.0)])
-                        user_input = input("是否合并?((A)ll/(Y)es/(N)o/A(b)ort): ").strip().lower()
+                        print_diff_blocks([(file_path, head, update, 1.0)])
+                        user_input = input(get_text("confirm_merge")).strip().lower() or 'y'
                         if user_input == 'a':
                             auto_confirm = True
-                        elif user_input == 'y':
+                        elif user_input in ['y', '']:
                             changes_to_make.append((file_path, existing_content, new_content))
                             file_content_mapping[file_path] = new_content
                             changes_made = True
                         elif user_input == 'n':
                             continue
                         elif user_input == 'b':
-                            logger.info("合并操作已中止。")
+                            logger.info(get_text("merge_operation_aborted"))
                             return
                     else:
                         changes_to_make.append((file_path, existing_content, new_content))
@@ -198,11 +199,11 @@ class CodeAutoMergeEditBlock:
                         new_content = existing_content.replace(best_window, update, 1)
                         if new_content != existing_content:
                             if confirm and not auto_confirm:
-                                print_unmerged_blocks([(file_path, head, update, similarity)])
-                                user_input = input("是否合并?((A)ll/(Y)es/(N)o/A(b)ort): ").strip().lower()
+                                print_diff_blocks([(file_path, head, update, similarity)])
+                                user_input = input(get_text("confirm_merge")).strip().lower() or 'y'
                                 if user_input == 'a':
                                     auto_confirm = True
-                                elif user_input == 'y':
+                                elif user_input in ['y', '']:
                                     changes_to_make.append(
                                         (file_path, existing_content, new_content)
                                     )
@@ -211,7 +212,7 @@ class CodeAutoMergeEditBlock:
                                 elif user_input == 'n':
                                     continue
                                 elif user_input == 'b':
-                                    logger.info("合并操作已中止。")
+                                    logger.info(get_text("merge_operation_aborted"))
                                     return
                             else:
                                 changes_to_make.append(

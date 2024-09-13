@@ -23,6 +23,7 @@ from rich.spinner import Spinner
 from rich.live import Live
 from rich.text import Text
 from rich.panel import Panel
+from rich.syntax import Syntax
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 import shutil
@@ -470,7 +471,7 @@ def read_file(file_path):
     
     return f"```{file_type}\n{file_code}\n```"
     
-def coding(query):
+def coding(query: str):
     """
     Process the coding query and generate or prompt for code based on the provided context.
 
@@ -481,6 +482,13 @@ def coding(query):
         [f"##File: {file}\n{read_file(file)}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
 
+    try:
+        import pyperclip
+        clipboard_content = pyperclip.paste()
+        query = query.format(clip=clipboard_content)
+    except ImportError:
+        logger.info(get_text('pyperclip_not_installed'))
+        query = query.format(clip="")
     replaced_template = render_template("code.txt", files=files, project_root=CURRENT_ROOT, files_code=files_code, query=query, **memory['conf'])
 
     with open("output.txt", "w", encoding='utf-8') as output_file:
@@ -506,13 +514,13 @@ def coding(query):
                         result += chunk.choices[0].delta.content
                         output = result.splitlines()
                         # Trim output_text to fit within terminal height
-                        if len(output) > terminal_height - 2:
-                            output_text = Text("\n".join(output[-terminal_height + 2:]))
+                        if len(output) > terminal_height - 4:
+                            output_text = "\n".join(output[-terminal_height + 4:])
                         else:
-                            output_text = Text(result)
+                            output_text = result
                         live.update(
                             Panel(
-                                output_text,
+                                Syntax(output_text, "markdown", theme="monokai"),
                                 title="Generating Code",
                                 border_style="green",
                             )

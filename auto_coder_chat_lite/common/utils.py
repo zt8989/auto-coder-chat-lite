@@ -1,4 +1,6 @@
+import os
 import subprocess
+import difflib
 from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
@@ -7,6 +9,12 @@ from rich.live import Live
 from rich.text import Text
 
 def print_unmerged_blocks(unmerged_blocks: List[Tuple], language: str = "python"):
+    """
+    Prints the unmerged blocks of code with syntax highlighting.
+
+    :param unmerged_blocks: A list of tuples containing file path, search block, replace block, and similarity score.
+    :param language: The programming language of the code blocks, default is "python".
+    """
     console = Console()
     console.print("\n[bold red]Unmerged Blocks:[/bold red]")
     for file_path, head, update, similarity in unmerged_blocks:
@@ -16,6 +24,25 @@ def print_unmerged_blocks(unmerged_blocks: List[Tuple], language: str = "python"
         console.print(Panel(syntax, expand=False))
         console.print("\n[bold yellow]Replace Block:[/bold yellow]")
         syntax = Syntax(update, language, theme="monokai", line_numbers=True)
+        console.print(Panel(syntax, expand=False))
+    console.print(
+        f"\n[bold red]Total unmerged blocks: {len(unmerged_blocks)}[/bold red]"
+    )
+
+def print_diff_blocks(unmerged_blocks: List[Tuple], language: str = "python"):
+    console = Console()
+    console.print("\n[bold red]Unmerged Blocks as Diff:[/bold red]")
+    for file_path, head, update, similarity in unmerged_blocks:
+        console.print(f"\n[bold blue]File:[/bold blue] {file_path}")
+        diff = difflib.unified_diff(
+            head.splitlines(),
+            update.splitlines(),
+            fromfile='a/' + os.path.relpath(file_path, start=os.getcwd()),
+            tofile='b/' + os.path.relpath(file_path, start=os.getcwd()),
+            lineterm='',
+        )
+        diff_text = "\n".join(diff)
+        syntax = Syntax(diff_text, "diff", theme="monokai", line_numbers=True)
         console.print(Panel(syntax, expand=False))
     console.print(
         f"\n[bold red]Total unmerged blocks: {len(unmerged_blocks)}[/bold red]"
