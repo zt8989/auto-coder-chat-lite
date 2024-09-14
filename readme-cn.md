@@ -40,6 +40,24 @@ chat.code
 - `/help` - 显示帮助信息。
 - `/exit` - 退出程序。
 
+### `chat.agent`
+
+```bash
+chat.agent
+```
+
+此命令用于与 OpenAI API 进行聊天补全交互。它需要 OpenAI API 密钥和模型配置。您可以使用以下命令设置配置：
+
+```bash
+chat.agent setup --api_key YOUR_API_KEY --base_url https://api.openai.com/v1 --model gpt-3.5-turbo
+```
+
+要测试配置，您可以使用：
+
+```bash
+chat.agent test
+```
+
 ### `chat.prompt`
 
 ```bash

@@ -40,6 +40,24 @@ This command starts the interactive command-line interface for code chat and pro
 - `/help` - Show this help message.
 - `/exit` - Exit the program.
 
+### `chat.agent`
+
+```bash
+chat.agent
+```
+
+This command is used to interact with the OpenAI API for chat completions. It requires the OpenAI API key and model configuration. You can set up the configuration using the following command:
+
+```bash
+chat.agent setup --api_key YOUR_API_KEY --base_url https://api.openai.com/v1 --model gpt-3.5-turbo
+```
+
+To test the configuration, you can use:
+
+```bash
+chat.agent test
+```
+
 ### `chat.prompt`
 
 ```bash
