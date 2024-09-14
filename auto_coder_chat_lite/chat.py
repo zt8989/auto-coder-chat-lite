@@ -485,10 +485,9 @@ def coding(query: str):
     try:
         import pyperclip
         clipboard_content = pyperclip.paste()
-        query = query.format(clip=clipboard_content)
+        query = query.format(clip=clipboard_content) if "{clip}" in query else query
     except ImportError:
         logger.info(get_text('pyperclip_not_installed'))
-        query = query.format(clip="")
     replaced_template = render_template("code.txt", files=files, project_root=CURRENT_ROOT, files_code=files_code, query=query, **memory['conf'])
 
     with open("output.txt", "w", encoding='utf-8') as output_file:

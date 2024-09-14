@@ -34,6 +34,7 @@ def print_diff_blocks(unmerged_blocks: List[Tuple], language: str = "python"):
     console.print("\n[bold red]Unmerged Blocks as Diff:[/bold red]")
     for file_path, head, update, similarity in unmerged_blocks:
         console.print(f"\n[bold blue]File:[/bold blue] {file_path}")
+        console.print(f"[bold blue]Similarity:[/bold blue] {similarity}")
         diff = difflib.unified_diff(
             head.splitlines(),
             update.splitlines(),
