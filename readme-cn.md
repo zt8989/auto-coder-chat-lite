@@ -1,5 +1,7 @@
 # auto-coder-chat-lite
 
+[![PyPI](https://img.shields.io/pypi/v/auto-coder-chat-lite.svg)](https://pypi.org/project/auto-coder-chat-lite/)
+
 一个轻量级的AI代码生成工具。
 
 [English](./README.md) | [中文](./readme-cn.md)
