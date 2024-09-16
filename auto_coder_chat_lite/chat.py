@@ -36,6 +36,11 @@ from auto_coder_chat_lite.common.git_diff_extractor import GitDiffExtractor
 from auto_coder_chat_lite.lang import get_text
 from auto_coder_chat_lite.common.config_manager import ConfigManager
 from auto_coder_chat_lite.constants import (
+    CONF_AUTO_COMPLETE,
+    EDITBLOCK_SIMILARITY,
+    HUMAN_AS_MODEL,
+    MERGE_CONFIRM,
+    MERGE_TYPE,
     PROJECT_DIR_NAME,
     COMMAND_ADD_FILES,
     COMMAND_REMOVE_FILES,
@@ -50,6 +55,7 @@ from auto_coder_chat_lite.constants import (
     COMMAND_CD,
     MERGE_TYPE_SEARCH_REPLACE,
     MERGE_TYPE_GIT_DIFF,
+    SHOW_FILE_TREE,
 )
 
 # 设置日志记录器
@@ -68,7 +74,7 @@ if platform.system() == "Windows":
 memory = {
     "conversation": [],
     "current_files": {"files": [], "groups": {}},
-    "conf": {"show_file_tree": True, "editblock_similarity": 0.8, "merge_type": "search_replace"},
+    "conf": {SHOW_FILE_TREE: True, EDITBLOCK_SIMILARITY: 0.8, MERGE_TYPE: MERGE_TYPE_SEARCH_REPLACE},
     "exclude_dirs": [],
     "mode": "normal",  # 新增mode字段,默认为normal模式
 }
@@ -208,8 +214,6 @@ class CommandCompleter(Completer):
         self.all_dir_names = get_all_dir_names_in_project()
         self.all_files_with_dot = get_all_file_in_project_with_dot()
         self.current_file_names = []
-        self.conf_keys = ["show_file_tree", "editblock_similarity", "merge_type"]
-        self.merge_type_values = ["search_replace", "git_diff"]
 
     def get_completions(self, document, complete_event):
         text = document.text_before_cursor
@@ -275,21 +279,21 @@ class CommandCompleter(Completer):
             elif words[0] == COMMAND_CONF:
                 current_word = words[-1]
                 if len(words) == 1 and text[-1] == ' ':
-                    for key in self.conf_keys:
+                    for key in CONF_AUTO_COMPLETE:
                         yield Completion(key, start_position=0)
                 elif len(words) == 2 and text[-1] == ' ':
                     key = words[1]
-                    if key == "merge_type":
-                        for key in self.merge_type_values:
-                            yield Completion(key, start_position=0)
+                    if key in CONF_AUTO_COMPLETE:
+                        for sub_key in CONF_AUTO_COMPLETE[key]:
+                            yield Completion(sub_key, start_position=0)
                 elif len(words) == 2:
-                    for key in self.conf_keys:
+                    for key in CONF_AUTO_COMPLETE:
                         if key.startswith(current_word):
                             yield Completion(key, start_position=-len(current_word))
                 elif len(words) == 3:
                     key = words[1]
-                    if key == "merge_type":
-                        for value in self.merge_type_values:
+                    if key in CONF_AUTO_COMPLETE:
+                        for value in CONF_AUTO_COMPLETE[key]:
                             if value.startswith(current_word):
                                 yield Completion(value, start_position=-len(current_word))
             else:
@@ -321,8 +325,8 @@ def load_memory():
     global memory
     config_manager = ConfigManager(os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME, "memory.json"))
     memory = config_manager.load()
-    if "merge_type" not in memory["conf"]:
-        memory["conf"]["merge_type"] = "search_replace"
+    if MERGE_TYPE not in memory["conf"]:
+        memory["conf"][MERGE_TYPE] = MERGE_TYPE_SEARCH_REPLACE
     completer.update_current_files(memory["current_files"]["files"])
 
 def add_files(args: List[str]):
@@ -432,8 +436,8 @@ def merge_code_with_editblock(result: str):
     
     :param result: The code result to be merged.
     """
-    confirm = memory["conf"].get("merge_confirmation", False)
-    merge_type = memory["conf"].get("merge_type", "search_replace")
+    confirm = memory["conf"].get(MERGE_CONFIRM, False)
+    merge_type = memory["conf"].get(MERGE_TYPE, MERGE_TYPE_SEARCH_REPLACE)
     if merge_type == MERGE_TYPE_SEARCH_REPLACE:
         editblock_similarity = memory["conf"].get("editblock_similarity", 0.8)
         args = AutoCoderArgs(file="output.txt", source_dir=PROJECT_ROOT, editblock_similarity=editblock_similarity)
@@ -639,7 +643,7 @@ def commit_message(ref_id=None):
     with open("output.txt", "w", encoding='utf-8') as output_file:
         output_file.write(replaced_template)
 
-    if memory["conf"].get("human_as_model", True) == False:
+    if memory["conf"].get(HUMAN_AS_MODEL, True) == False:
         git_diff = get_git_diff()
         if not git_diff:
             logger.info("No changes to commit.")
@@ -691,18 +695,19 @@ def main(verbose=False):
 
     @kb.add("c-n")
     def _(event):
-        if "human_as_model" not in memory["conf"]:
-            memory["conf"]["human_as_model"] = True
+        if HUMAN_AS_MODEL not in memory["conf"]:
+            memory["conf"][HUMAN_AS_MODEL] = True
 
-        current_status = memory["conf"]["human_as_model"]
+        current_status = memory["conf"][HUMAN_AS_MODEL]
         new_status = not current_status
-        memory["conf"]["human_as_model"] = new_status
+        memory["conf"][HUMAN_AS_MODEL] = new_status
         save_memory()
         event.app.invalidate()
 
     def get_bottom_toolbar():
-        human_as_model = memory["conf"].get("human_as_model", True)
-        merge_confirm = memory["conf"].get("merge_confirmation", False)
+        human_as_model = memory["conf"].get(HUMAN_AS_MODEL, True)
+
+        merge_confirm = memory["conf"].get(MERGE_CONFIRM, False)
         return (
             f" Model: {'human' if human_as_model else 'openai'} (ctl+n) | Merge Confirm: {'on' if merge_confirm else 'off'}"
         )
@@ -760,64 +765,7 @@ def main(verbose=False):
                 dir_names = user_input[len(COMMAND_EXCLUDE_DIRS):].strip().split()
                 exclude_dirs(dir_names)
             elif user_input.startswith(COMMAND_CONF):
-                conf_args = user_input[len(COMMAND_CONF):].strip().split()
-                if len(conf_args) == 2:
-                    key, value = conf_args
-                    if key == "show_file_tree":
-                        if value.lower() in ["true", "false"]:
-                            memory["conf"][key] = value.lower() == "true"
-                            logger.info(f"Updated configuration: {key} = {memory['conf'][key]}")
-                            save_memory()  # 更新配置值后调用 save_memory 方法
-                        else:
-                            logger.info("Invalid value. Please provide 'true' or 'false'.")
-                    elif key == "editblock_similarity":
-                        try:
-                            value = float(value)
-                            if 0 <= value <= 1:
-                                memory["conf"][key] = value
-                                logger.info(f"Updated configuration: {key} = {value}")
-                                save_memory()  # 更新配置值后调用 save_memory 方法
-                            else:
-                                logger.info("Invalid value. Please provide a number between 0 and 1.")
-                        except ValueError:
-                            logger.info("Invalid value. Please provide a valid number.")
-                    elif key == "merge_type":
-                        if value in [MERGE_TYPE_SEARCH_REPLACE, MERGE_TYPE_GIT_DIFF]:
-                            memory["conf"][key] = value
-                            logger.info(f"Updated configuration: {key} = {value}")
-                            save_memory()  # 更新配置值后调用 save_memory 方法
-                        else:
-                            logger.info("Invalid value. Please provide 'search_replace' or 'git_diff'.")
-                    elif key == "merge_confirmation":
-                        if value.lower() in ["true", "false"]:
-                            memory["conf"][key] = value.lower() == "true"
-                            logger.info(f"Updated configuration: {key} = {memory['conf'][key]}")
-                            save_memory()  # 更新配置值后调用 save_memory 方法
-                        else:
-                            logger.info("Invalid value. Please provide 'true' or 'false'.")
-                    else:
-                        try:
-                            value = float(value)
-                            memory["conf"][key] = value
-                            logger.info(f"Updated configuration: {key} = {value}")
-                            save_memory()  # 更新配置值后调用 save_memory 方法
-                        except ValueError:
-                            logger.info("Invalid value. Please provide a valid number.")
-                elif len(conf_args) == 1:
-                    key = conf_args[0]
-                    if key in memory["conf"]:
-                        logger.info(f"Current configuration: {key} = {memory['conf'][key]}")
-                    else:
-                        logger.info(f"Configuration key '{key}' not found.")
-                elif len(conf_args) == 0:
-                    if memory["conf"]:
-                        logger.info("Current configuration:")
-                        for key, value in memory["conf"].items():
-                            logger.info(f"  {key} = {value}")
-                    else:
-                        logger.info("No configuration values set.")
-                else:
-                    logger.info("Usage: /conf [<key> [<value>]]")
+                handle_configuration(user_input)
             elif user_input.startswith(COMMAND_COMMIT_MESSAGE):
                 ref_id = None
                 if ' ' in user_input:
@@ -853,6 +801,77 @@ def main(verbose=False):
                 logger.error(traceback.format_exc())
             else:
                 logger.error(get_text('error_occurred').format(type(e).__name__, str(e)))
+
+def handle_configuration(user_input):
+    conf_args = user_input[len(COMMAND_CONF):].strip().split()
+    if len(conf_args) == 2:
+        key, value = conf_args
+        from auto_coder_chat_lite.constants import (
+            SHOW_FILE_TREE, EDITBLOCK_SIMILARITY, MERGE_TYPE, MERGE_CONFIRM, HUMAN_AS_MODEL
+        )
+
+        if key == SHOW_FILE_TREE:
+            if value.lower() in ["true", "false"]:
+                memory["conf"][key] = value.lower() == "true"
+                logger.info(f"Updated configuration: {key} = {memory['conf'][key]}")
+                save_memory()  # 更新配置值后调用 save_memory 方法
+            else:
+                logger.info("Invalid value. Please provide 'true' or 'false'.")
+        elif key == EDITBLOCK_SIMILARITY:
+            try:
+                value = float(value)
+                if 0 <= value <= 1:
+                    memory["conf"][key] = value
+                    logger.info(f"Updated configuration: {key} = {value}")
+                    save_memory()  # 更新配置值后调用 save_memory 方法
+                else:
+                    logger.info("Invalid value. Please provide a number between 0 and 1.")
+            except ValueError:
+                logger.info("Invalid value. Please provide a valid number.")
+        elif key == MERGE_TYPE:
+            if value in [MERGE_TYPE_SEARCH_REPLACE, MERGE_TYPE_GIT_DIFF]:
+                memory["conf"][key] = value
+                logger.info(f"Updated configuration: {key} = {value}")
+                save_memory()  # 更新配置值后调用 save_memory 方法
+            else:
+                logger.info("Invalid value. Please provide 'search_replace' or 'git_diff'.")
+        elif key == MERGE_CONFIRM:
+            if value.lower() in ["true", "false"]:
+                memory["conf"][MERGE_CONFIRM] = value.lower() == "true"
+                logger.info(f"Updated configuration: {MERGE_CONFIRM} = {memory['conf'][MERGE_CONFIRM]}")
+                save_memory()  # 更新配置值后调用 save_memory 方法
+            else:
+                logger.info("Invalid value. Please provide 'true' or 'false'.")
+        elif key == HUMAN_AS_MODEL:
+            if value.lower() in ["true", "false"]:
+                memory["conf"][HUMAN_AS_MODEL] = value.lower() == "true"
+                logger.info(f"Updated configuration: {HUMAN_AS_MODEL} = {memory['conf'][HUMAN_AS_MODEL]}")
+                save_memory()  # 更新配置值后调用 save_memory 方法
+            else:
+                logger.info("Invalid value. Please provide 'true' or 'false'.")
+        else:
+            try:
+                value = float(value)
+                memory["conf"][key] = value
+                logger.info(f"Updated configuration: {key} = {value}")
+                save_memory()  # 更新配置值后调用 save_memory 方法
+            except ValueError:
+                logger.info("Invalid value. Please provide a valid number.")
+    elif len(conf_args) == 1:
+        key = conf_args[0]
+        if key in memory["conf"]:
+            logger.info(f"Current configuration: {key} = {memory['conf'][key]}")
+        else:
+            logger.info(f"Configuration key '{key}' not found.")
+    elif len(conf_args) == 0:
+        if memory["conf"]:
+            logger.info("Current configuration:")
+            for key, value in memory["conf"].items():
+                logger.info(f"  {key} = {value}")
+        else:
+            logger.info("No configuration values set.")
+    else:
+        logger.info("Usage: /conf [<key> [<value>]]")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Auto Coder Chat Lite")

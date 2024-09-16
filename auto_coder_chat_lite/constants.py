@@ -15,3 +15,20 @@ COMMAND_CD = "/cd"
 
 MERGE_TYPE_SEARCH_REPLACE = "search_replace"
 MERGE_TYPE_GIT_DIFF = "git_diff"
+
+# Additional constants
+SHOW_FILE_TREE = "show_file_tree"
+EDITBLOCK_SIMILARITY = "editblock_similarity"
+MERGE_TYPE = "merge_type"
+MERGE_CONFIRM = "merge_confirm"
+
+HUMAN_AS_MODEL = "human_as_model"
+
+BOOLS = ["true", "false"]
+
+CONF_AUTO_COMPLETE = {
+    SHOW_FILE_TREE: BOOLS,
+    MERGE_TYPE: [MERGE_TYPE_SEARCH_REPLACE, MERGE_TYPE_GIT_DIFF],
+    MERGE_CONFIRM: BOOLS,
+    HUMAN_AS_MODEL: BOOLS
+}
