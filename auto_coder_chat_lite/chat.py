@@ -1,3 +1,4 @@
+import copy
 import glob
 import json
 import os
@@ -71,13 +72,15 @@ if platform.system() == "Windows":
     from colorama import init
     init()
 
-memory = {
+_memory = {
     "conversation": [],
     "current_files": {"files": [], "groups": {}},
     "conf": {SHOW_FILE_TREE: True, EDITBLOCK_SIMILARITY: 0.8, MERGE_TYPE: MERGE_TYPE_SEARCH_REPLACE},
     "exclude_dirs": [],
     "mode": "normal",  # 新增mode字段,默认为normal模式
 }
+
+memory = copy.deepcopy(_memory)
 
 defaut_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
 
@@ -318,13 +321,33 @@ class CommandCompleter(Completer):
 completer = CommandCompleter(commands)
 
 def save_memory():
-    config_manager = ConfigManager(os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME, "memory.json"))
+    project_dir = os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME)
+    memory_file = os.path.join(project_dir, "memory.json")
+    
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+    
+    if not os.path.exists(memory_file):
+        with open(memory_file, "w", encoding='utf-8') as f:
+            json.dump({"current_files": {"files": []}, "conf": {}}, f, indent=2, ensure_ascii=False)
+    
+    config_manager = ConfigManager(memory_file)
     config_manager.save(memory)
 
 def load_memory():
+    project_dir = os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME)
+    memory_file = os.path.join(project_dir, "memory.json")
+    
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+    
+    if not os.path.exists(memory_file):
+        with open(memory_file, "w", encoding='utf-8') as f:
+            json.dump({"current_files": {"files": []}, "conf": {}}, f, indent=2, ensure_ascii=False)
+    
     global memory
-    config_manager = ConfigManager(os.path.join(CURRENT_ROOT, PROJECT_DIR_NAME, "memory.json"))
-    memory = config_manager.load()
+    config_manager = ConfigManager(memory_file)
+    memory = config_manager.load(lambda: copy.deepcopy(_memory))
     if MERGE_TYPE not in memory["conf"]:
         memory["conf"][MERGE_TYPE] = MERGE_TYPE_SEARCH_REPLACE
     completer.update_current_files(memory["current_files"]["files"])

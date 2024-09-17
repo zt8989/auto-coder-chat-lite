@@ -23,11 +23,15 @@ class ConfigManager:
         with open(self.config_file_path, 'w', encoding='utf-8') as config_file:
             json.dump(config, config_file, ensure_ascii=False, indent=4)
 
-    def load(self):
+    def load(self, default=lambda: {}):
         """
         Load the configuration from the specified file.
         
-        :return: The configuration dictionary.
+        :param default: A lambda function that returns the default value to return if the file does not exist.
+        :return: The configuration dictionary or the default value if the file does not exist.
         """
-        with open(self.config_file_path, 'r', encoding='utf-8') as config_file:
-            return json.load(config_file)
+        if os.path.exists(self.config_file_path):
+            with open(self.config_file_path, 'r', encoding='utf-8') as config_file:
+                return json.load(config_file)
+        else:
+            return default()
