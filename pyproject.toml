@@ -19,7 +19,13 @@ Jinja2 = "3.1.4"
 pylint = "3.2.7"
 openai = "1.44.1"
 hy = "^1.0.0"
+loguru = "^0.7.2"
 
+
+[tool.poetry.scripts]
+"chat.code" = "auto_coder_chat_lite.chat:main"
+"chat.prompt" = "auto_coder_chat_lite.prompt:main"
+"chat.agent" = "auto_coder_chat_lite.agent:main"
 
 [build-system]
 requires = ["poetry-core"]
