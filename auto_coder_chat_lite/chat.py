@@ -58,15 +58,9 @@ from auto_coder_chat_lite.constants import (
     MERGE_TYPE_GIT_DIFF,
     SHOW_FILE_TREE,
 )
+from auto_coder_chat_lite.logger import setup_logger
 
-# 设置日志记录器
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(message)s')
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+logger = setup_logger(__name__)
 
 if platform.system() == "Windows":
     from colorama import init
@@ -487,6 +481,7 @@ def read_file(file_path):
         '.md': 'markdown',
         '.json': 'json',
         '.txt': 'plaintext',
+        '.hy': 'hylang',  # Add support for .hy files
         # 添加更多文件类型
     }
     
