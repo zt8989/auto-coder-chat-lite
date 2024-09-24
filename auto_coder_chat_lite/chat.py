@@ -59,6 +59,7 @@ from auto_coder_chat_lite.constants import (
     SHOW_FILE_TREE,
 )
 from auto_coder_chat_lite.lib.logger import setup_logger
+from auto_coder_chat_lite.project import init_project
 
 logger = setup_logger(__name__)
 
@@ -593,35 +594,6 @@ def show_help():
     print(get_text('cd_help'))  # 新增 /cd 命令的帮助信息
     print(get_text('merge_help'))
     print(get_text('exit_help'))
-
-def init_project():
-    """
-    Initialize project directory and memory file.
-    
-    If the project directory doesn't exist, create it and initialize the memory file.
-    """
-    project_dir = PROJECT_DIR_NAME
-    memory_file = os.path.join(project_dir, "memory.json")
-    
-    if not os.path.exists(project_dir):
-        os.makedirs(project_dir)
-        with open(memory_file, "w", encoding='utf-8') as f:
-            json.dump({"current_files": {"files": []}, "conf": {}}, f, indent=2, ensure_ascii=False)
-        logger.info(f"Created directory {project_dir} and initialized {memory_file}")
-
-    gitignore_path = os.path.join(PROJECT_ROOT, ".gitignore")
-    if not os.path.exists(gitignore_path):
-        with open(gitignore_path, "w", encoding='utf-8') as f:
-            f.write(f"{PROJECT_DIR_NAME}/\noutput.txt\n")
-    else:
-        with open(gitignore_path, "r", encoding='utf-8') as f:
-            content = f.read()
-        if f"{PROJECT_DIR_NAME}/" not in content:
-            with open(gitignore_path, "a", encoding='utf-8') as f:
-                f.write(f"{PROJECT_DIR_NAME}/\n")
-        if "output.txt" not in content:
-            with open(gitignore_path, "a", encoding='utf-8') as f:
-                f.write("output.txt\n")
 
 def get_git_diff():
     repo = git.Repo(PROJECT_ROOT)
