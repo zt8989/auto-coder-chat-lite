@@ -58,7 +58,7 @@ from auto_coder_chat_lite.constants import (
     MERGE_TYPE_GIT_DIFF,
     SHOW_FILE_TREE,
 )
-from auto_coder_chat_lite.logger import setup_logger
+from auto_coder_chat_lite.lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 
