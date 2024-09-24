@@ -368,9 +368,9 @@ def add_files(args: List[str]):
     
     if files_to_add:
         memory["current_files"]["files"].extend(files_to_add)
-        logger.info(get_text('files_added').format(files_to_add))
+        print(get_text('files_added').format(files_to_add))
     else:
-        logger.info(get_text('no_files_added'))
+        print(get_text('no_files_added'))
     
     completer.update_current_files(memory["current_files"]["files"])
     save_memory()
@@ -392,9 +392,9 @@ def remove_files(file_names: List[str]):
                     removed_files.append(file)
                     memory["current_files"]["files"].remove(file)
     if removed_files:
-        logger.info(get_text('files_removed').format(removed_files))
+        print(get_text('files_removed').format(removed_files))
     else:
-        logger.info(get_text('no_files_removed'))
+        print(get_text('no_files_removed'))
     completer.update_current_files(memory["current_files"]["files"])
     save_memory()
     
@@ -409,7 +409,7 @@ def list_files():
         console = Console()
         console.print(table)
     else:
-        logger.info(get_text('no_files'))
+        print(get_text('no_files'))
 
 def render_template(template_name, **kwargs):
     project_dir = os.path.join(PROJECT_ROOT, PROJECT_DIR_NAME)
@@ -465,7 +465,7 @@ def merge_code_with_editblock(result: str):
         git_diff_extractor = GitDiffExtractor(PROJECT_ROOT)
         diff_blocks = git_diff_extractor.extract_git_diff(result)
         if git_diff_extractor.apply_patch(diff_blocks):
-            logger.info("Git diff applied successfully.")
+            print("Git diff applied successfully.")
         else:
             logger.warning("Failed to apply git diff.")
 
@@ -510,7 +510,7 @@ def coding(query: str):
         clipboard_content = pyperclip.paste()
         query = query.format(clip=clipboard_content) if "{clip}" in query else query
     except ImportError:
-        logger.info(get_text('pyperclip_not_installed'))
+        print(get_text('pyperclip_not_installed'))
     replaced_template = render_template("code.txt", files=files, project_root=CURRENT_ROOT, files_code=files_code, query=query, **memory['conf'])
 
     with open("output.txt", "w", encoding='utf-8') as output_file:
@@ -556,19 +556,19 @@ def coding(query: str):
             import pyperclip
             pyperclip.copy(replaced_template)
         except ImportError:
-            logger.info(get_text('pyperclip_not_installed'))
+            print(get_text('pyperclip_not_installed'))
 
-        logger.info(get_text('coding_processed'))
+        print(get_text('coding_processed'))
 
         result = get_user_input()
 
     merge_code_with_editblock(result)
 
 def merge_code():
-    logger.info(get_text('merge_started'))
+    print(get_text('merge_started'))
     result = get_user_input()
     merge_code_with_editblock(result)
-    logger.info(get_text('merge_completed'))
+    print(get_text('merge_completed'))
 
 def exclude_dirs(dir_names: List[str]):
     new_dirs = dir_names
@@ -578,9 +578,9 @@ def exclude_dirs(dir_names: List[str]):
         existing_dirs.extend(dirs_to_add)
         if "exclude_dirs" not in memory:
             memory["exclude_dirs"] = existing_dirs
-        logger.info(get_text('dirs_added').format(dirs_to_add))
+        print(get_text('dirs_added').format(dirs_to_add))
     else:
-        logger.info(get_text('no_dirs_added'))
+        print(get_text('no_dirs_added'))
     save_memory()
     completer.refresh_files()
 
@@ -603,12 +603,12 @@ def get_git_diff():
             diff_output = repo.git.diff()
         
         if not diff_output:
-            logger.info(get_text('git_diff_empty'))
+            print(get_text('git_diff_empty'))
             return ""
         
         return diff_output
     except git.GitCommandError as e:
-        logger.info(get_text('git_diff_error'))
+        print(get_text('git_diff_error'))
         return ""
 
 def get_language():
@@ -636,7 +636,7 @@ def commit_message(ref_id=None):
     if memory["conf"].get(HUMAN_AS_MODEL, True) == False:
         git_diff = get_git_diff()
         if not git_diff:
-            logger.info("No changes to commit.")
+            print("No changes to commit.")
             return
 
         messages = [
@@ -662,20 +662,20 @@ def commit_message(ref_id=None):
                 if not repo.index.diff("HEAD"):  # Check if there are staged files
                     repo.git.add(A=True)
                 repo.index.commit(commit_message)
-                logger.info("Changes committed successfully.")
+                print("Changes committed successfully.")
             else:
-                logger.info("Commit aborted by user.")
+                print("Commit aborted by user.")
         else:
             logger.error("Failed to generate commit message.")
     else:
         try:
             import pyperclip
             pyperclip.copy(replaced_template)
-            logger.info(get_text('commit_message_generated'))
+            print(get_text('commit_message_generated'))
         except ImportError:
-            logger.info(get_text('pyperclip_not_installed'))
+            print(get_text('pyperclip_not_installed'))
 
-        logger.info(get_text('commit_message_saved'))
+        print(get_text('commit_message_saved'))
 
 def main(verbose=False):
     init_project()
@@ -712,7 +712,7 @@ def main(verbose=False):
         bottom_toolbar=get_bottom_toolbar
     )
 
-    logger.info("\033[1;34m" + get_text('type_help') + "\033[0m")
+    print("\033[1;34m" + get_text('type_help') + "\033[0m")
     show_help()
 
     style = Style.from_dict(
@@ -748,7 +748,7 @@ def main(verbose=False):
             elif user_input.startswith(COMMAND_CODING):
                 query = user_input[len(COMMAND_CODING):].strip()
                 if not query:
-                    logger.info(get_text('coding_request'))
+                    print(get_text('coding_request'))
                 else:
                     coding(query)
             elif user_input.startswith(COMMAND_EXCLUDE_DIRS):
@@ -773,17 +773,17 @@ def main(verbose=False):
                     global CURRENT_ROOT
                     CURRENT_ROOT = os.path.abspath(dir_name)
                     load_memory()
-                    logger.info(f"Changed directory to: {CURRENT_ROOT}")
+                    print(f"Changed directory to: {CURRENT_ROOT}")
                 else:
-                    logger.info(f"Directory '{dir_name}' does not exist.")
+                    print(f"Directory '{dir_name}' does not exist.")
             else:
-                logger.info(get_text('unknown_command'))
+                print(get_text('unknown_command'))
 
         except KeyboardInterrupt:
             continue
         except EOFError:
             save_memory()
-            logger.info(get_text('exiting'))
+            print(get_text('exiting'))
             break
         except Exception as e:
             if verbose:
@@ -803,65 +803,65 @@ def handle_configuration(user_input):
         if key == SHOW_FILE_TREE:
             if value.lower() in ["true", "false"]:
                 memory["conf"][key] = value.lower() == "true"
-                logger.info(f"Updated configuration: {key} = {memory['conf'][key]}")
+                print(f"Updated configuration: {key} = {memory['conf'][key]}")
                 save_memory()  # 更新配置值后调用 save_memory 方法
             else:
-                logger.info("Invalid value. Please provide 'true' or 'false'.")
+                print("Invalid value. Please provide 'true' or 'false'.")
         elif key == EDITBLOCK_SIMILARITY:
             try:
                 value = float(value)
                 if 0 <= value <= 1:
                     memory["conf"][key] = value
-                    logger.info(f"Updated configuration: {key} = {value}")
+                    print(f"Updated configuration: {key} = {value}")
                     save_memory()  # 更新配置值后调用 save_memory 方法
                 else:
-                    logger.info("Invalid value. Please provide a number between 0 and 1.")
+                    print("Invalid value. Please provide a number between 0 and 1.")
             except ValueError:
-                logger.info("Invalid value. Please provide a valid number.")
+                print("Invalid value. Please provide a valid number.")
         elif key == MERGE_TYPE:
             if value in [MERGE_TYPE_SEARCH_REPLACE, MERGE_TYPE_GIT_DIFF]:
                 memory["conf"][key] = value
-                logger.info(f"Updated configuration: {key} = {value}")
+                print(f"Updated configuration: {key} = {value}")
                 save_memory()  # 更新配置值后调用 save_memory 方法
             else:
-                logger.info("Invalid value. Please provide 'search_replace' or 'git_diff'.")
+                print("Invalid value. Please provide 'search_replace' or 'git_diff'.")
         elif key == MERGE_CONFIRM:
             if value.lower() in ["true", "false"]:
                 memory["conf"][MERGE_CONFIRM] = value.lower() == "true"
-                logger.info(f"Updated configuration: {MERGE_CONFIRM} = {memory['conf'][MERGE_CONFIRM]}")
+                print(f"Updated configuration: {MERGE_CONFIRM} = {memory['conf'][MERGE_CONFIRM]}")
                 save_memory()  # 更新配置值后调用 save_memory 方法
             else:
-                logger.info("Invalid value. Please provide 'true' or 'false'.")
+                print("Invalid value. Please provide 'true' or 'false'.")
         elif key == HUMAN_AS_MODEL:
             if value.lower() in ["true", "false"]:
                 memory["conf"][HUMAN_AS_MODEL] = value.lower() == "true"
-                logger.info(f"Updated configuration: {HUMAN_AS_MODEL} = {memory['conf'][HUMAN_AS_MODEL]}")
+                print(f"Updated configuration: {HUMAN_AS_MODEL} = {memory['conf'][HUMAN_AS_MODEL]}")
                 save_memory()  # 更新配置值后调用 save_memory 方法
             else:
-                logger.info("Invalid value. Please provide 'true' or 'false'.")
+                print("Invalid value. Please provide 'true' or 'false'.")
         else:
             try:
                 value = float(value)
                 memory["conf"][key] = value
-                logger.info(f"Updated configuration: {key} = {value}")
+                print(f"Updated configuration: {key} = {value}")
                 save_memory()  # 更新配置值后调用 save_memory 方法
             except ValueError:
-                logger.info("Invalid value. Please provide a valid number.")
+                print("Invalid value. Please provide a valid number.")
     elif len(conf_args) == 1:
         key = conf_args[0]
         if key in memory["conf"]:
-            logger.info(f"Current configuration: {key} = {memory['conf'][key]}")
+            print(f"Current configuration: {key} = {memory['conf'][key]}")
         else:
-            logger.info(f"Configuration key '{key}' not found.")
+            print(f"Configuration key '{key}' not found.")
     elif len(conf_args) == 0:
         if memory["conf"]:
-            logger.info("Current configuration:")
+            print("Current configuration:")
             for key, value in memory["conf"].items():
-                logger.info(f"  {key} = {value}")
+                print(f"  {key} = {value}")
         else:
-            logger.info("No configuration values set.")
+            print("No configuration values set.")
     else:
-        logger.info("Usage: /conf [<key> [<value>]]")
+        print("Usage: /conf [<key> [<value>]]")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Auto Coder Chat Lite")
