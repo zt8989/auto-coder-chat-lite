@@ -1,6 +1,13 @@
 import os
+import copy
 import json
-from auto_coder_chat_lite.constants import PROJECT_DIR_NAME
+from typing import List
+from auto_coder_chat_lite.chat import PROJECT_ROOT
+from auto_coder_chat_lite.constants import (
+    PROJECT_DIR_NAME,
+    defaut_exclude_dirs,
+    memory
+)
 from auto_coder_chat_lite.lib.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -32,3 +39,38 @@ def init_project():
         if "output.txt" not in content:
             with open(gitignore_path, "a", encoding='utf-8') as f:
                 f.write("output.txt\n")
+
+def get_all_file_names_in_project() -> List[str]:
+    file_names = []
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    for root, dirs, files in os.walk(PROJECT_ROOT):
+        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
+        file_names.extend(files)
+    return file_names
+
+def get_all_file_in_project() -> List[str]:
+    file_names = []
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    for root, dirs, files in os.walk(PROJECT_ROOT):
+        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
+        for file in files:
+            file_names.append(os.path.join(root, file))
+    return file_names
+
+def get_all_file_in_project_with_dot() -> List[str]:
+    file_names = []
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    for root, dirs, files in os.walk(PROJECT_ROOT):
+        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
+        for file in files:
+            file_names.append(os.path.join(root, file).replace(PROJECT_ROOT, "."))
+    return file_names
+
+def get_all_dir_names_in_project() -> List[str]:
+    dir_names = []
+    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
+    for root, dirs, files in os.walk(PROJECT_ROOT):
+        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
+        for dir in dirs:
+            dir_names.append(dir)
+    return dir_names

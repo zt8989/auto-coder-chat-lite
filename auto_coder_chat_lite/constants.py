@@ -1,4 +1,7 @@
 # 常量定义
+import os
+import copy
+
 PROJECT_DIR_NAME = ".auto-coder-chat-lite"
 
 COMMAND_ADD_FILES = "/add_files"
@@ -32,3 +35,18 @@ CONF_AUTO_COMPLETE = {
     MERGE_CONFIRM: BOOLS,
     HUMAN_AS_MODEL: BOOLS
 }
+
+defaut_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
+
+# 在文件顶部添加常量定义
+PROJECT_ROOT = os.getcwd()
+
+_memory = {
+    "conversation": [],
+    "current_files": {"files": [], "groups": {}},
+    "conf": {SHOW_FILE_TREE: True, EDITBLOCK_SIMILARITY: 0.8, MERGE_TYPE: MERGE_TYPE_SEARCH_REPLACE},
+    "exclude_dirs": [],
+    "mode": "normal",  # 新增mode字段,默认为normal模式
+}
+
+memory = copy.deepcopy(_memory)

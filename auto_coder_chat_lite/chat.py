@@ -3,10 +3,8 @@ import glob
 import json
 import os
 import platform
-import subprocess
 import traceback
 import argparse
-import logging
 import git
 from jinja2 import Environment, FileSystemLoader
 
@@ -16,13 +14,11 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.styles import Style
 from prompt_toolkit.formatted_text import FormattedText
-from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.key_binding import KeyBindings
 from rich.console import Console
 from rich.table import Table
 from rich.spinner import Spinner
 from rich.live import Live
-from rich.text import Text
 from rich.panel import Panel
 from rich.syntax import Syntax
 from pathspec import PathSpec
@@ -32,12 +28,10 @@ import shutil
 from auto_coder_chat_lite.agent import external_chat_completion
 from auto_coder_chat_lite.common import AutoCoderArgs
 from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
-from auto_coder_chat_lite.common.command_completer import CommandTextParser
 from auto_coder_chat_lite.common.git_diff_extractor import GitDiffExtractor
 from auto_coder_chat_lite.lang import get_text
 from auto_coder_chat_lite.common.config_manager import ConfigManager
 from auto_coder_chat_lite.constants import (
-    CONF_AUTO_COMPLETE,
     EDITBLOCK_SIMILARITY,
     HUMAN_AS_MODEL,
     MERGE_CONFIRM,
@@ -57,6 +51,10 @@ from auto_coder_chat_lite.constants import (
     MERGE_TYPE_SEARCH_REPLACE,
     MERGE_TYPE_GIT_DIFF,
     SHOW_FILE_TREE,
+    PROJECT_ROOT,
+    defaut_exclude_dirs,
+    memory,
+    _memory
 )
 from auto_coder_chat_lite.lib.logger import setup_logger
 from auto_coder_chat_lite.project import init_project
@@ -67,20 +65,8 @@ if platform.system() == "Windows":
     from colorama import init
     init()
 
-_memory = {
-    "conversation": [],
-    "current_files": {"files": [], "groups": {}},
-    "conf": {SHOW_FILE_TREE: True, EDITBLOCK_SIMILARITY: 0.8, MERGE_TYPE: MERGE_TYPE_SEARCH_REPLACE},
-    "exclude_dirs": [],
-    "mode": "normal",  # 新增mode字段,默认为normal模式
-}
-
-memory = copy.deepcopy(_memory)
-
-defaut_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
 
 # 在文件顶部添加常量定义
-PROJECT_ROOT = os.getcwd()
 CURRENT_ROOT = PROJECT_ROOT  # 新增全局变量 CURRENT_ROOT，初始值等于 PROJECT_ROOT
 
 commands = [
@@ -112,40 +98,7 @@ def get_exclude_spec():
     
     return spec, final_exclude_dirs
 
-def get_all_file_names_in_project() -> List[str]:
-    file_names = []
-    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
-    for root, dirs, files in os.walk(PROJECT_ROOT):
-        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
-        file_names.extend(files)
-    return file_names
 
-def get_all_file_in_project() -> List[str]:
-    file_names = []
-    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
-    for root, dirs, files in os.walk(PROJECT_ROOT):
-        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
-        for file in files:
-            file_names.append(os.path.join(root, file))
-    return file_names
-
-def get_all_file_in_project_with_dot() -> List[str]:
-    file_names = []
-    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
-    for root, dirs, files in os.walk(PROJECT_ROOT):
-        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
-        for file in files:
-            file_names.append(os.path.join(root, file).replace(PROJECT_ROOT, "."))
-    return file_names
-
-def get_all_dir_names_in_project() -> List[str]:
-    dir_names = []
-    final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
-    for root, dirs, files in os.walk(PROJECT_ROOT):
-        dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
-        for dir in dirs:
-            dir_names.append(dir)
-    return dir_names
 
 def generate_file_tree(root_dir, indent_char='    ', last_char='', level_char=''):
     file_tree = []
@@ -204,113 +157,7 @@ def find_files_in_project(patterns: List[str]) -> List[str]:
 
     return list(set(matched_files))
 
-class CommandCompleter(Completer):
-    def __init__(self, commands):
-        self.commands = commands
-        self.all_file_names = get_all_file_names_in_project()
-        self.all_files = get_all_file_in_project()
-        self.all_dir_names = get_all_dir_names_in_project()
-        self.all_files_with_dot = get_all_file_in_project_with_dot()
-        self.current_file_names = []
-
-    def get_completions(self, document, complete_event):
-        text = document.text_before_cursor
-        words = text.split()
-
-        if len(words) > 0:
-            if words[0] == COMMAND_ADD_FILES:
-                current_word = words[-1]
-                for file_name in self.all_file_names:
-                    if file_name.startswith(current_word):
-                        yield Completion(file_name, start_position=-len(current_word))
-            elif words[0] == COMMAND_REMOVE_FILES:
-                current_word = words[-1]
-                for file_name in self.current_file_names:
-                    if file_name.startswith(current_word):
-                        yield Completion(file_name, start_position=-len(current_word))
-            elif words[0] == COMMAND_EXCLUDE_DIRS:
-                current_word = words[-1]
-                for dir_name in self.all_dir_names:
-                    if dir_name.startswith(current_word):
-                        yield Completion(dir_name, start_position=-len(current_word))
-            elif words[0] == COMMAND_CD:
-                current_word = words[-1]
-                for dir_name in self.all_dir_names:
-                    if dir_name.startswith(current_word):
-                        yield Completion(dir_name, start_position=-len(current_word))
-            elif words[0] == COMMAND_CODING:
-                new_text = text[len(words[0]) :]
-                parser = CommandTextParser(new_text, words[0])
-                parser.coding()
-                current_word = parser.current_word()
-
-                all_tags = parser.tags
-
-                if current_word.startswith("@"):
-                    name = current_word[1:]
-                    target_set = set()
-
-                    for file_name in self.current_file_names:
-                        base_file_name = os.path.basename(file_name)
-                        if name in base_file_name:
-                            target_set.add(base_file_name)
-                            path_parts = file_name.split(os.sep)
-                            display_name = (
-                                os.sep.join(path_parts[-3:])
-                                if len(path_parts) > 3
-                                else file_name
-                            )
-                            yield Completion(
-                                base_file_name,
-                                start_position=-len(name),
-                                display=f"{display_name} (in active files)",
-                            )
-
-                    for file_name in self.all_file_names:
-                        if file_name.startswith(name) and file_name not in target_set:
-                            target_set.add(file_name)
-                            yield Completion(file_name, start_position=-len(name))
-
-                    for file_name in self.all_files:
-                        if name in file_name and file_name not in target_set:
-                            yield Completion(file_name, start_position=-len(name))
-            elif words[0] == COMMAND_CONF:
-                current_word = words[-1]
-                if len(words) == 1 and text[-1] == ' ':
-                    for key in CONF_AUTO_COMPLETE:
-                        yield Completion(key, start_position=0)
-                elif len(words) == 2 and text[-1] == ' ':
-                    key = words[1]
-                    if key in CONF_AUTO_COMPLETE:
-                        for sub_key in CONF_AUTO_COMPLETE[key]:
-                            yield Completion(sub_key, start_position=0)
-                elif len(words) == 2:
-                    for key in CONF_AUTO_COMPLETE:
-                        if key.startswith(current_word):
-                            yield Completion(key, start_position=-len(current_word))
-                elif len(words) == 3:
-                    key = words[1]
-                    if key in CONF_AUTO_COMPLETE:
-                        for value in CONF_AUTO_COMPLETE[key]:
-                            if value.startswith(current_word):
-                                yield Completion(value, start_position=-len(current_word))
-            else:
-                for command in self.commands:
-                    if command.startswith(text):
-                        yield Completion(command, start_position=-len(text))
-        else:
-            for command in self.commands:
-                if command.startswith(text):
-                    yield Completion(command, start_position=-len(text))
-
-    def update_current_files(self, files):
-        self.current_file_names = [os.path.basename(f) for f in files]
-
-    def refresh_files(self):
-        self.all_file_names = get_all_file_names_in_project()
-        self.all_files = get_all_file_in_project()
-        self.all_dir_names = get_all_dir_names_in_project()
-        self.all_files_with_dot = get_all_file_in_project_with_dot()
+from auto_coder_chat_lite.command_completer import CommandCompleter
         # self.symbol_list = get_symbol_list()
 
 completer = CommandCompleter(commands)

@@ -6,7 +6,7 @@
 (defn setup-logger [name]
   "Set up a logger with the given name."
   (setv logger (logging.getLogger name))
-  (setv formatter (logging.Formatter "%(message)s"))
+  (setv formatter (logging.Formatter "%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
   (setv logger.level logging.INFO)
   (setv log-dir (os.path.join (os.getcwd) PROJECT_DIR_NAME))
   (os.makedirs log-dir :exist-ok True)
