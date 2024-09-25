@@ -238,6 +238,19 @@ astor = {version = ">=0.8", markers = "python_version < \"3.9\""}
 funcparserlib = ">=1.0,<2.0"
 
 [[package]]
+name = "hyrule"
+version = "0.7.0"
+description = "A utility library for the Hy programming language"
+optional = false
+python-versions = "*"
+files = [
+    {file = "hyrule-0.7.0.tar.gz", hash = "sha256:3a4b3568abfe16d16895e584c0db84c1251d258fe234ba86f072906b90545ce8"},
+]
+
+[package.dependencies]
+hy = ">=1"
+
+[[package]]
 name = "idna"
 version = "3.10"
 description = "Internationalized Domain Names in Applications (IDNA)"
@@ -908,4 +921,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.0,<3.14"
-content-hash = "ee5b41741eedee2332870ae0771b823fce3d2762371e3d4acb4cfca7cbb598d0"
+content-hash = "24320325b52acd3cd1beda56cec76551cc6dd90c3883c706871afe7d241c44cb"

@@ -25,6 +25,7 @@ pylint = "3.2.7"
 openai = "1.44.1"
 hy = "^1.0.0"
 loguru = "^0.7.2"
+hyrule = "^0.7.0"
 
 
 [tool.poetry.scripts]
