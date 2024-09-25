@@ -36,7 +36,7 @@ CONF_AUTO_COMPLETE = {
     HUMAN_AS_MODEL: BOOLS
 }
 
-defaut_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
+defaut_exclude_dirs = [".git/", "node_modules/", "dist/", "build/", "__pycache__/"]
 
 # 在文件顶部添加常量定义
 PROJECT_ROOT = os.getcwd()

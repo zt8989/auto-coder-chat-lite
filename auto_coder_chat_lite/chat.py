@@ -210,6 +210,12 @@ def add_files(args: List[str]):
     # 过滤文件
     files_to_add = []
     for f in matched_files:
+        if f not in existing_files:
+            logger.info(f"File {f} not in existing files.")
+        if not spec.match_file(f):
+            logger.info(f"File {f} does not match spec.")
+        if not any(exclude_dir in f for exclude_dir in final_exclude_dirs):
+            logger.info(f"File {f} does not contain any exclude directories.")
         if f not in existing_files and not spec.match_file(f) and not any(exclude_dir in f for exclude_dir in final_exclude_dirs):
             files_to_add.append(f)
     
@@ -301,13 +307,9 @@ def merge_code_with_editblock(result: str):
     
     :param result: The code result to be merged.
     """
-    confirm = memory["conf"].get(MERGE_CONFIRM, False)
     merge_type = memory["conf"].get(MERGE_TYPE, MERGE_TYPE_SEARCH_REPLACE)
     if merge_type == MERGE_TYPE_SEARCH_REPLACE:
-        editblock_similarity = memory["conf"].get("editblock_similarity", 0.8)
-        args = AutoCoderArgs(file="output.txt", source_dir=PROJECT_ROOT, editblock_similarity=editblock_similarity)
-        code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
-        code_auto_merge_editblock.merge_code(result, confirm=confirm)
+        merge_code_search_replace(result)
     elif merge_type == "git_diff":
         git_diff_extractor = GitDiffExtractor(PROJECT_ROOT)
         diff_blocks = git_diff_extractor.extract_git_diff(result)
@@ -315,6 +317,13 @@ def merge_code_with_editblock(result: str):
             print("Git diff applied successfully.")
         else:
             logger.warning("Failed to apply git diff.")
+
+def merge_code_search_replace(result: str):
+    confirm = memory["conf"].get(MERGE_CONFIRM, False)
+    editblock_similarity = memory["conf"].get("editblock_similarity", 0.8)
+    args = AutoCoderArgs(file="output.txt", source_dir=PROJECT_ROOT, editblock_similarity=editblock_similarity)
+    code_auto_merge_editblock = CodeAutoMergeEditBlock(args)
+    code_auto_merge_editblock.merge_code(result, confirm=confirm)
 
 def read_file(file_path):
     with open(file_path, encoding='utf-8') as f:
