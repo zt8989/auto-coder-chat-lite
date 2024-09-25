@@ -2,11 +2,11 @@ import os
 import copy
 import json
 from typing import List
-from auto_coder_chat_lite.chat import PROJECT_ROOT
 from auto_coder_chat_lite.constants import (
     PROJECT_DIR_NAME,
     defaut_exclude_dirs,
-    memory
+    memory,
+    PROJECT_ROOT
 )
 from auto_coder_chat_lite.lib.logger import setup_logger
 

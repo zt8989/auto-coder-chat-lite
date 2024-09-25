@@ -32,7 +32,6 @@ from auto_coder_chat_lite.common.git_diff_extractor import GitDiffExtractor
 from auto_coder_chat_lite.lang import get_text
 from auto_coder_chat_lite.common.config_manager import ConfigManager
 from auto_coder_chat_lite.constants import (
-    EDITBLOCK_SIMILARITY,
     HUMAN_AS_MODEL,
     MERGE_CONFIRM,
     MERGE_TYPE,
@@ -50,7 +49,6 @@ from auto_coder_chat_lite.constants import (
     COMMAND_CD,
     MERGE_TYPE_SEARCH_REPLACE,
     MERGE_TYPE_GIT_DIFF,
-    SHOW_FILE_TREE,
     PROJECT_ROOT,
     defaut_exclude_dirs,
     memory,
@@ -382,7 +380,7 @@ def coding(query: str):
 
         terminal_height = shutil.get_terminal_size()[1]
 
-        with Live(refresh_per_second=4) as live:
+        with Live(spinner, refresh_per_second=4) as live:
             response = external_chat_completion(messages, stream=True)
             if response:
                 result = ""
