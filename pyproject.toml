@@ -4,6 +4,11 @@ version = "0.1.10"
 description = "a simple code chat tool inspired by auto coder"
 authors = ["cowboy <251027705@qq.com>"]
 readme = "README.md"
+classifiers = [
+    'Programming Language :: Python :: 3',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: OS Independent',
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.14"
