@@ -25,7 +25,7 @@ from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 import shutil
 
-from auto_coder_chat_lite.agent import external_chat_completion
+from auto_coder_chat_lite.lib.agent import external_chat_completion
 from auto_coder_chat_lite.common import AutoCoderArgs
 from auto_coder_chat_lite.common.code_auto_merge_editblock import CodeAutoMergeEditBlock
 from auto_coder_chat_lite.common.git_diff_extractor import GitDiffExtractor
