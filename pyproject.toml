@@ -32,6 +32,9 @@ loguru = "^0.7.2"
 "chat.prompt" = "auto_coder_chat_lite.prompt:main"
 "chat.agent" = "auto_coder_chat_lite.agent:main"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
