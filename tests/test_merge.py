@@ -27,7 +27,7 @@ def test_parse_and_eval_hylang():
         search_code = "test"
         replace_code = "example"
         escaped_file_path = os.path.normpath(file_path).replace('\\', '\\\\')
-        answer = f'```hylang\n(search_replace_merge "{escaped_file_path}" "{search_code}" "{replace_code}")\n```\n'
+        answer = f'```hy\n(search_replace_merge "{escaped_file_path}" "{search_code}" "{replace_code}")\n```\n'
         temp_file.write(original_content)
         temp_file.close()
         parse_and_eval_hylang(answer)
@@ -38,7 +38,7 @@ def test_parse_and_eval_hylang():
 
 def test_extract_hylang_code():
     """Test the extract_hylang_code function."""
-    text = '```hylang\n(print "Hello, World!")\n```\nSome other text\n```hylang\n(defn add [a b]\n  (+ a b))\n```'
+    text = '```hy\n(print "Hello, World!")\n```\nSome other text\n```hy\n(defn add [a b]\n  (+ a b))\n```'
     code_blocks = extract_hylang_code(text)
     assert code_blocks == ['(print "Hello, World!")\n', '(defn add [a b]\n  (+ a b))\n']
 

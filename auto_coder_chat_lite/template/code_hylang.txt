@@ -57,12 +57,13 @@
 如果你需要生成代码，对于每个需要更改的文件,你需要按 *SEARCH/REPLACE block* 的格式进行生成。你可以使用以下`hy`方法：
 
 ```hy
-(defn search_replace_merge [path search_code replace_code]
-  "Perform a search and replace operation on the given file.
+(defn search_replace_merge [path search_code replace_code #* args]
+  "Perform a search and replace operation on the given file. If search_code is empty, create a new file with replace_code.
 
   :param path: The path to the file to be modified.
   :param search_code: The code to search for in the file.
-  :param replace_code: The code to replace the search_code with.")
+  :param replace_code: The code to replace the search_code with.
+  :param args: Additional pairs of search_code and replace_code.")
 ```
 
 Every *SEARCH* section must *EXACTLY MATCH* the existing source code, character for character, including all comments, docstrings, etc.
