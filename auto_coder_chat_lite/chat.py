@@ -52,7 +52,12 @@ from auto_coder_chat_lite.constants import (
     PROJECT_ROOT,
     defaut_exclude_dirs,
     memory,
-    _memory
+    _memory,
+    SHOW_FILE_TREE, 
+    EDITBLOCK_SIMILARITY, 
+    MERGE_TYPE, 
+    MERGE_CONFIRM, 
+    HUMAN_AS_MODEL
 )
 from auto_coder_chat_lite.lib.logger import setup_logger
 from auto_coder_chat_lite.project import init_project
@@ -81,15 +86,15 @@ commands = [
     COMMAND_CD,  # 新增 /cd 命令
 ]
 
-def get_exclude_spec():
+def get_exclude_spec(root_dir: str):
     # 读取 .gitignore 文件
-    gitignore_path = os.path.join(PROJECT_ROOT, '.gitignore')
+    gitignore_path = os.path.join(root_dir or PROJECT_ROOT, '.gitignore')
     if os.path.exists(gitignore_path):
         with open(gitignore_path, 'r', encoding='utf-8') as f:
             gitignore_content = f.read()
         spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_content.splitlines())
     else:
-        spec = PathSpec()
+        spec = PathSpec(patterns=[])
     
     # 获取排除目录
     final_exclude_dirs = defaut_exclude_dirs + memory.get("exclude_dirs", [])
@@ -100,12 +105,14 @@ def get_exclude_spec():
 
 def generate_file_tree(root_dir, indent_char='    ', last_char='', level_char=''):
     file_tree = []
-    spec, final_exclude_dirs = get_exclude_spec()
+    spec, final_exclude_dirs = get_exclude_spec(root_dir)
 
     def list_files(start_path, prefix=''):
         files = os.listdir(start_path)
         for i, file_name in enumerate(files):
             full_path = os.path.join(start_path, file_name)
+            if os.path.isdir(full_path):
+                full_path = f"{full_path}/"
             if spec.match_file(full_path) or any(exclude_dir in full_path for exclude_dir in final_exclude_dirs):
                 continue
             is_last = i == len(files) - 1
@@ -650,9 +657,6 @@ def handle_configuration(user_input):
     conf_args = user_input[len(COMMAND_CONF):].strip().split()
     if len(conf_args) == 2:
         key, value = conf_args
-        from auto_coder_chat_lite.constants import (
-            SHOW_FILE_TREE, EDITBLOCK_SIMILARITY, MERGE_TYPE, MERGE_CONFIRM, HUMAN_AS_MODEL
-        )
 
         if key == SHOW_FILE_TREE:
             if value.lower() in ["true", "false"]:

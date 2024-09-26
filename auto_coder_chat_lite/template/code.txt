@@ -178,7 +178,7 @@ from hello import hello
 当前项目目录结构：
 1. 项目根目录： {{ project_root}}
 2. 项目子目录/文件列表(类似tree 命令输出)：
-{% if show_file_tree %}
+{% if show_file_tree != false %}
 {{ files }}
 {% endif %}
 下面是一些文件路径以及每个文件对应的源码：
