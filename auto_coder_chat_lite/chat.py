@@ -61,6 +61,7 @@ from auto_coder_chat_lite.constants import (
 )
 from auto_coder_chat_lite.lib.logger import setup_logger
 from auto_coder_chat_lite.project import init_project
+from auto_coder_chat_lite.configuration_handler import handle_configuration
 
 logger = setup_logger(__name__)
 
@@ -620,7 +621,7 @@ def main(verbose=False):
                 dir_names = user_input[len(COMMAND_EXCLUDE_DIRS):].strip().split()
                 exclude_dirs(dir_names)
             elif user_input.startswith(COMMAND_CONF):
-                handle_configuration(user_input)
+                handle_configuration(user_input, memory, save_memory)
             elif user_input.startswith(COMMAND_COMMIT_MESSAGE):
                 ref_id = None
                 if ' ' in user_input:
@@ -657,84 +658,5 @@ def main(verbose=False):
             else:
                 logger.error(get_text('error_occurred').format(type(e).__name__, str(e)))
 
-def handle_configuration(user_input):
-    conf_args = user_input[len(COMMAND_CONF):].strip().split()
-    if len(conf_args) == 2:
-        key, value = conf_args
-
-        if key == SHOW_FILE_TREE:
-            if value.lower() in ["true", "false"]:
-                memory["conf"][key] = value.lower() == "true"
-                print(f"Updated configuration: {key} = {memory['conf'][key]}")
-                save_memory()  # 更新配置值后调用 save_memory 方法
-            else:
-                print("Invalid value. Please provide 'true' or 'false'.")
-        elif key == EDITBLOCK_SIMILARITY:
-            try:
-                value = float(value)
-                if 0 <= value <= 1:
-                    memory["conf"][key] = value
-                    print(f"Updated configuration: {key} = {value}")
-                    save_memory()  # 更新配置值后调用 save_memory 方法
-                else:
-                    print("Invalid value. Please provide a number between 0 and 1.")
-            except ValueError:
-                print("Invalid value. Please provide a valid number.")
-        elif key == MERGE_TYPE:
-            if value in [MERGE_TYPE_SEARCH_REPLACE, MERGE_TYPE_GIT_DIFF]:
-                memory["conf"][key] = value
-                print(f"Updated configuration: {key} = {value}")
-                save_memory()  # 更新配置值后调用 save_memory 方法
-            else:
-                print("Invalid value. Please provide 'search_replace' or 'git_diff'.")
-        elif key == MERGE_CONFIRM:
-            if value.lower() in ["true", "false"]:
-                memory["conf"][MERGE_CONFIRM] = value.lower() == "true"
-                print(f"Updated configuration: {MERGE_CONFIRM} = {memory['conf'][MERGE_CONFIRM]}")
-                save_memory()  # 更新配置值后调用 save_memory 方法
-            else:
-                print("Invalid value. Please provide 'true' or 'false'.")
-        elif key == HUMAN_AS_MODEL:
-            if value.lower() in ["true", "false"]:
-                memory["conf"][HUMAN_AS_MODEL] = value.lower() == "true"
-                print(f"Updated configuration: {HUMAN_AS_MODEL} = {memory['conf'][HUMAN_AS_MODEL]}")
-                save_memory()  # 更新配置值后调用 save_memory 方法
-            else:
-                print("Invalid value. Please provide 'true' or 'false'.")
-        elif key == "language":
-            if value in ["zh", "en"]:
-                memory["conf"][key] = value
-                print(f"Updated configuration: {key} = {value}")
-                save_memory()  # 更新配置值后调用 save_memory 方法
-            else:
-                print("Invalid value. Please provide 'zh' or 'en'.")
-        else:
-            try:
-                value = float(value)
-                memory["conf"][key] = value
-                print(f"Updated configuration: {key} = {value}")
-                save_memory()  # 更新配置值后调用 save_memory 方法
-            except ValueError:
-                print("Invalid value. Please provide a valid number.")
-    elif len(conf_args) == 1:
-        key = conf_args[0]
-        if key in memory["conf"]:
-            print(f"Current configuration: {key} = {memory['conf'][key]}")
-        else:
-            print(f"Configuration key '{key}' not found.")
-    elif len(conf_args) == 0:
-        if memory["conf"]:
-            print("Current configuration:")
-            for key, value in memory["conf"].items():
-                print(f"  {key} = {value}")
-        else:
-            print("No configuration values set.")
-    else:
-        print("Usage: /conf [<key> [<value>]]")
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Auto Coder Chat Lite")
-    parser.add_argument("-v", "--verbose", action="store_true", help=get_text('verbose_help'))
-    args = parser.parse_args()
-    
-    main(verbose=args.verbose)
+    main(True)
