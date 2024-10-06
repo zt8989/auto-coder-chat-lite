@@ -109,7 +109,7 @@ def generate_file_tree(root_dir, indent_char='    ', last_char='', level_char=''
     spec, final_exclude_dirs = get_exclude_spec(root_dir)
 
     def list_files(start_path, prefix=''):
-        files = os.listdir(start_path)
+        files = sorted(os.listdir(start_path))
         for i, file_name in enumerate(files):
             full_path = os.path.join(start_path, file_name)
             if os.path.isdir(full_path):
