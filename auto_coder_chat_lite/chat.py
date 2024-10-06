@@ -86,7 +86,7 @@ commands = [
     COMMAND_CD,  # 新增 /cd 命令
 ]
 
-def get_exclude_spec(root_dir: str):
+def get_exclude_spec(root_dir: str = None):
     # 读取 .gitignore 文件
     gitignore_path = os.path.join(root_dir or PROJECT_ROOT, '.gitignore')
     if os.path.exists(gitignore_path):
@@ -480,13 +480,17 @@ def get_language():
         # 可以继续添加其他语言映射
     }
 
-    # 根据当前环境判断 language
-    import locale
-    try:
-        language_code = locale.getdefaultlocale()[0].split('_')[0]
-        return language_map.get(language_code, "English")
-    except:
-        return "English"  # 默
+    # 首先读取 conf["language"] 的值
+    language_code = memory["conf"].get("language")
+    if language_code is None:
+        # 如果 conf["language"] 为 None, 则根据当前环境判断 language
+        import locale
+        try:
+            language_code = locale.getdefaultlocale()[0].split('_')[0]
+        except:
+            language_code = "en"  # 默认
+
+    return language_map.get(language_code, "English")
     
 def commit_message(ref_id=None):
     replaced_template = render_template("commit_message.txt", git_diff=get_git_diff(), language=get_language(), ref_id=ref_id)
@@ -697,6 +701,13 @@ def handle_configuration(user_input):
                 save_memory()  # 更新配置值后调用 save_memory 方法
             else:
                 print("Invalid value. Please provide 'true' or 'false'.")
+        elif key == "language":
+            if value in ["zh", "en"]:
+                memory["conf"][key] = value
+                print(f"Updated configuration: {key} = {value}")
+                save_memory()  # 更新配置值后调用 save_memory 方法
+            else:
+                print("Invalid value. Please provide 'zh' or 'en'.")
         else:
             try:
                 value = float(value)

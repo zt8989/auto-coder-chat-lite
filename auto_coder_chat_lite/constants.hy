@@ -23,6 +23,8 @@
 (setv MERGE_TYPE "merge_type")
 (setv MERGE_CONFIRM "merge_confirm")
 
+(setv LANGUAGE "language")
+
 (setv HUMAN_AS_MODEL "human_as_model")
 
 (setv BOOLS ["true" "false"])
@@ -31,7 +33,8 @@
   {SHOW_FILE_TREE BOOLS
    MERGE_TYPE [MERGE_TYPE_SEARCH_REPLACE MERGE_TYPE_GIT_DIFF]
    MERGE_CONFIRM BOOLS
-   HUMAN_AS_MODEL BOOLS})
+   HUMAN_AS_MODEL BOOLS
+   LANGUAGE ["zh" "en"]})
 
 (setv defaut_exclude_dirs [".git/" "node_modules/" "dist/" "build/" "__pycache__/"])
 
