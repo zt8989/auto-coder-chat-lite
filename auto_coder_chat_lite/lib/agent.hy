@@ -1,28 +1,29 @@
 (import os)
 (import argparse)
 (import openai [Client])
-(import auto_coder_chat_lite.common.config_manager [ConfigManager])
+(import auto-coder-chat-lite.common.config-manager [ConfigManager])
+(import auto-coder-chat-lite.constants [PROJECT-DIR-NAME])
 (require hyrule *)
 
-(defn get_client_from_config [config]
+(defn get-client-from-config [config]
   "Create and return an OpenAI client using the provided configuration.
   
-  :param config: A dictionary containing 'api_key', 'base_url', and 'model'.
+  :param config: A dictionary containing 'api-key', 'base-url', and 'model'.
   :return: An OpenAI client instance."
-  (Client :api_key (get config "api_key") :base_url (get config "base_url")))
+  (Client :api-key (get config "api-key") :base-url (get config "base-url")))
 
-(defn initialize_config_manager []
+(defn initialize-config-manager []
   "Initialize and return a ConfigManager instance.
   
   :return: A ConfigManager instance."
   (setv home-dir (os.path.expanduser "~"))
-  (setv config-dir (os.path.join home-dir ".auto_coder_chat_lite"))
+  (setv config-dir (os.path.join home-dir PROJECT-DIR-NAME))
   (os.makedirs config-dir :exist-ok True)
 
   (setv config-file-path (os.path.join config-dir "config.json"))
   (ConfigManager config-file-path))
 
-(defn create_chat_completion [client model messages [max-tokens None] [stream False]]
+(defn create-chat-completion [client model messages [max-tokens None] [stream False]]
   "Create a chat completion using the OpenAI API.
   
   :param client: An OpenAI client instance.
@@ -44,11 +45,11 @@
   :param max-tokens: The maximum number of tokens to generate.
   :param stream: Whether to stream the response.
   :return: The response from the OpenAI API or None if the call fails."
-  (setv config-manager (initialize_config_manager))
+  (setv config-manager (initialize-config-manager))
   (setv config (config-manager.load))
-  (setv client (get_client_from_config config))
+  (setv client (get-client-from-config config))
   (try
-    (setv response (create_chat_completion client (get config "model") messages max-tokens stream))
+    (setv response (create-chat-completion client (get config "model") messages max-tokens stream))
     response
     (except [e Exception]
       (print f"OpenAI API call failed: {e}")
@@ -56,28 +57,28 @@
 
 (defn main []
   "agent function to handle command-line arguments and perform actions."
-  (setv parser (argparse.ArgumentParser :description "Agent script for auto_coder_chat_lite"))
+  (setv parser (argparse.ArgumentParser :description "Agent script for auto-coder-chat-lite"))
   (parser.add-argument "action" :nargs "?" :default "setup" :help "Action to perform (default: setup)")
-  (parser.add-argument "--base_url" :default "https://api.deepseek.com" :help "Base URL for OpenAI API")
-  (parser.add-argument "--api_key" :help "API key for OpenAI")
+  (parser.add-argument "--base-url" :default "https://api.deepseek.com" :help "Base URL for OpenAI API")
+  (parser.add-argument "--api-key" :help "API key for OpenAI")
   (parser.add-argument "--model" :default "deepseek-chat" :help "Model to use for OpenAI API")
 
   (setv args (parser.parse-args))
 
-  (setv config-manager (initialize_config_manager))
+  (setv config-manager (initialize-config-manager))
 
   (when (= args.action "setup")
     (do
-      (unless args.api_key
-        (parser.error "--api_key is required when action is 'setup'"))
+      (unless args.api-key
+        (parser.error "--api-key is required when action is 'setup'"))
       
-      (setv config {"base_url" args.base_url "api_key" args.api_key "model" args.model})
+      (setv config {"base-url" args.base-url "api-key" args.api-key "model" args.model})
 
       (config-manager.save config)
 
-      (setv client (get_client_from_config config))
+      (setv client (get-client-from-config config))
       (try
-        (setv response (create_chat_completion client (get config "model") [{"role" "user" "content" "Test prompt"}] :max-tokens 5))
+        (setv response (create-chat-completion client (get config "model") [{"role" "user" "content" "Test prompt"}] :max-tokens 5))
         (print "OpenAI API test successful!")
         (print response)
         (except [e Exception]
@@ -86,9 +87,9 @@
   (when (= args.action "test")
     (do
       (setv config (config-manager.load))
-      (setv client (get_client_from_config config))
+      (setv client (get-client-from-config config))
       (try
-        (setv response (create_chat_completion client (get config "model") [{"role" "user" "content" "Test prompt"}]))
+        (setv response (create-chat-completion client (get config "model") [{"role" "user" "content" "Test prompt"}]))
         (print "OpenAI API test successful!")
         (print response)
         (except [e Exception]
