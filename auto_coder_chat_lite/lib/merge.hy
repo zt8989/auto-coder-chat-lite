@@ -29,7 +29,7 @@
 
 (defn extract_hylang_code [text]
   "Extract HyLang code blocks from the given text."
-  (re.findall r"```hy\n(.*?)```" text :flags re.DOTALL))
+  (re.findall r"```(?:hy|hylang)\n(.*?)```" text :flags re.DOTALL))
 
 (defn eval_hylang_code [code]
   "Evaluate the given HyLang code."

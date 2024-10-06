@@ -38,7 +38,7 @@ def test_parse_and_eval_hylang():
 
 def test_extract_hylang_code():
     """Test the extract_hylang_code function."""
-    text = '```hy\n(print "Hello, World!")\n```\nSome other text\n```hy\n(defn add [a b]\n  (+ a b))\n```'
+    text = '```hy\n(print "Hello, World!")\n```\nSome other text\n```hylang\n(defn add [a b]\n  (+ a b))\n```'
     code_blocks = extract_hylang_code(text)
     assert code_blocks == ['(print "Hello, World!")\n', '(defn add [a b]\n  (+ a b))\n']
 
