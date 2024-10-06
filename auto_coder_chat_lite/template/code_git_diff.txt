@@ -1,0 +1,52 @@
+如果你需要生成代码，对于每个需要更改的文件,你需要按 * Unified Diff * 的格式进行生成。
+
+# Unified Diff Format Rules
+
+1. **File Header**:
+   - The file header contains identifiers for the old and new versions of the file.
+   - The format is: `--- a/file_path` and `+++ b/file_path`.
+   - `---` indicates the old version of the file, and `+++` indicates the new version of the file.
+
+2. **Hunk Header**:
+   - Each hunk represents a section of the file that has been changed.
+   - The format is: `@@ -start,length +start,length @@`
+   - `-start,length` indicates the starting line and length of the old version.
+   - `+start,length` indicates the starting line and length of the new version.
+
+3. **Change Lines**:
+   - Lines prefixed with `-` are removed from the old version.
+   - Lines prefixed with `+` are added in the new version.
+   - Lines prefixed with a space are unchanged and are included for context.
+
+4. **Context Lines**:
+   - Context lines are prefixed with a space and are included to provide context around the changes.
+
+# Example of a Unified Diff
+
+```diff
+--- a/example.txt
++++ b/example.txt
+@@ -1,3 +1,4 @@
+ This is the old content.
+-This line is removed.
++This line is added.
+ This line remains unchanged.
++This is a new line added.
+```
+
+# Explanation of the Example
+
+- **File Header**:
+  - `--- a/example.txt` indicates the old version of the file.
+  - `+++ b/example.txt` indicates the new version of the file.
+
+- **Hunk Header**:
+  - `@@ -1,3 +1,4 @@` indicates that the hunk starts at line 1 in the old version and spans 3 lines, and starts at line 1 in the new version and spans 4 lines.
+
+- **Change Lines**:
+  - `-This line is removed.` indicates that this line was removed from the old version.
+  - `+This line is added.` indicates that this line was added in the new version.
+  - `+This is a new line added.` indicates that this new line was added in the new version.
+
+- **Context Lines**:
+  - `This is the old content.` and `This line remains unchanged.` are context lines that provide context around the changes.

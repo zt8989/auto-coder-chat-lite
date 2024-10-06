@@ -1,5 +1,13 @@
 (import os)
-(import auto_coder_chat_lite.constants [SHOW_FILE_TREE EDITBLOCK_SIMILARITY MERGE_TYPE MERGE_CONFIRM HUMAN_AS_MODEL MERGE_TYPE_SEARCH_REPLACE MERGE_TYPE_GIT_DIFF LANGUAGE])
+(import auto_coder_chat_lite.constants 
+        [CONF_AUTO_COMPLETE
+         SHOW_FILE_TREE 
+         EDITBLOCK_SIMILARITY 
+         MERGE_TYPE MERGE_CONFIRM 
+         HUMAN_AS_MODEL 
+         MERGE_TYPE_SEARCH_REPLACE 
+         MERGE_TYPE_GIT_DIFF 
+         LANGUAGE])
 ; (import hy.pyops *)
 (require hyrule *)
 (import hyrule [assoc])
@@ -42,12 +50,13 @@
                   (except [ValueError]
                     (print "Invalid value. Please provide a valid number.")))
               (= key MERGE_TYPE)
-                (if (in value [MERGE_TYPE_SEARCH_REPLACE MERGE_TYPE_GIT_DIFF])
-                  (do
-                    (assoc (get memory "conf") key value)
-                    (print-config memory key)
-                    (save-memory))
-                  (print "Invalid value. Please provide 'search_replace' or 'git_diff'."))
+                (let [values (get CONF_AUTO_COMPLETE key)]
+                  (if (in value values)
+                    (do
+                      (assoc (get memory "conf") key value)
+                      (print-config memory key)
+                      (save-memory))
+                    (print f"Invalid value. Please provide {values}.")))
               (= key MERGE_CONFIRM)
                 (if (in (.lower value) ["true" "false"])
                   (do
