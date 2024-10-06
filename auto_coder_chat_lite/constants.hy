@@ -2,6 +2,7 @@
 (import copy)
 
 (setv PROJECT_DIR_NAME ".auto-coder-chat-lite")
+(setv GITIGNORE_FILE ".gitignore")
 
 (setv COMMAND_ADD_FILES "/add_files")
 (setv COMMAND_REMOVE_FILES "/remove_files")
@@ -39,6 +40,10 @@
 (setv defaut_exclude_dirs [".git/" "node_modules/" "dist/" "build/" "__pycache__/"])
 
 (setv PROJECT_ROOT (os.getcwd))
+
+(setv SOURCE_DIR (os.path.join (os.path.dirname (os.path.abspath __file__))))
+(setv PROJECT_DIR (os.path.join PROJECT_ROOT PROJECT_DIR_NAME))
+(setv TEMPLATES "template")
 
 (setv _memory
   {"conversation" []

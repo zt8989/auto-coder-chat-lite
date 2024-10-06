@@ -1,8 +1,8 @@
-(import os)
+(import os shutil)
 (import argparse)
 (import openai [Client])
 (import auto-coder-chat-lite.common.config-manager [ConfigManager])
-(import auto-coder-chat-lite.constants [PROJECT-DIR-NAME])
+(import auto-coder-chat-lite.constants [PROJECT-DIR-NAME SOURCE_DIR PROJECT_DIR TEMPLATES])
 (require hyrule *)
 
 (defn get-client-from-config [config]
@@ -95,8 +95,20 @@
         (except [e Exception]
           (print f"OpenAI API test failed: {e}")))))
 
-  (unless(in args.action ["setup" "test"])
+  (when (= args.action "dump")
+    (let
+     [project-dir (os.path.join PROJECT_DIR TEMPLATES)
+      source-dir (os.path.join SOURCE_DIR TEMPLATES)]
+      (os.makedirs project-dir :exist-ok True)
+      (for [template (os.listdir source-dir)]
+        (let [source-file (os.path.join source-dir template)
+              dest-file (os.path.join project-dir template)]
+        (when (os.path.isfile source-file)
+          (shutil.copy source-file dest-file))
+        (print f"Templates dumped successfully! Copied {template} to {dest-file}")))))
+
+  (unless(in args.action ["setup" "test" "dump"])
     (print f"Unknown action: {args.action}")))
 
-(when (= __name__ "__main__")
-    (main))
+(defmain []
+  (main))

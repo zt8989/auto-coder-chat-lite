@@ -6,7 +6,8 @@ from auto_coder_chat_lite.constants import (
     PROJECT_DIR_NAME,
     defaut_exclude_dirs,
     memory,
-    PROJECT_ROOT
+    PROJECT_ROOT,
+    GITIGNORE_FILE
 )
 from auto_coder_chat_lite.lib.logger import setup_logger
 
@@ -26,7 +27,7 @@ def init_project():
             json.dump({"current_files": {"files": []}, "conf": {}}, f, indent=2, ensure_ascii=False)
         logger.info(f"Created directory {project_dir} and initialized {memory_file}")
 
-    gitignore_path = os.path.join(os.getcwd(), ".gitignore")
+    gitignore_path = os.path.join(os.getcwd(), GITIGNORE_FILE)
     if not os.path.exists(gitignore_path):
         with open(gitignore_path, "w", encoding='utf-8') as f:
             f.write(f"{PROJECT_DIR_NAME}/\noutput.txt\n")
