@@ -49,6 +49,7 @@ from auto_coder_chat_lite.constants import (
     COMMAND_CD,
     MERGE_TYPE_SEARCH_REPLACE,
     MERGE_TYPE_GIT_DIFF,
+    MERGE_TYPE_HYLANG,
     PROJECT_ROOT,
     defaut_exclude_dirs,
     memory,
@@ -62,6 +63,7 @@ from auto_coder_chat_lite.constants import (
 from auto_coder_chat_lite.lib.logger import setup_logger
 from auto_coder_chat_lite.project import init_project
 from auto_coder_chat_lite.configuration_handler import handle_configuration
+from auto_coder_chat_lite.lib.merge import parse_and_eval_hylang
 
 logger = setup_logger(__name__)
 
@@ -86,6 +88,8 @@ commands = [
     COMMAND_MERGE,
     COMMAND_CD,  # 新增 /cd 命令
 ]
+
+VERBOSE = False
 
 def get_exclude_spec(root_dir: str = None):
     # 读取 .gitignore 文件
@@ -313,16 +317,20 @@ def merge_code_with_editblock(result: str):
     
     :param result: The code result to be merged.
     """
+    if VERBOSE:
+        logger.info(result)
     merge_type = memory["conf"].get(MERGE_TYPE, MERGE_TYPE_SEARCH_REPLACE)
     if merge_type == MERGE_TYPE_SEARCH_REPLACE:
         merge_code_search_replace(result)
-    elif merge_type == "git_diff":
+    if merge_type == MERGE_TYPE_GIT_DIFF:
         git_diff_extractor = GitDiffExtractor(PROJECT_ROOT)
         diff_blocks = git_diff_extractor.extract_git_diff(result)
         if git_diff_extractor.apply_patch(diff_blocks):
             print("Git diff applied successfully.")
         else:
-            logger.warning("Failed to apply git diff.")
+            print("Failed to apply git diff.")
+    if merge_type == MERGE_TYPE_HYLANG:
+        parse_and_eval_hylang(result)
 
 def merge_code_search_replace(result: str):
     confirm = memory["conf"].get(MERGE_CONFIRM, False)
@@ -543,7 +551,7 @@ def commit_message(ref_id=None):
 
         print(get_text('commit_message_saved'))
 
-def main(verbose=False):
+def main():
     init_project()
     load_memory()
 
@@ -652,11 +660,12 @@ def main(verbose=False):
             print(get_text('exiting'))
             break
         except Exception as e:
-            if verbose:
+            if VERBOSE:
                 logger.error(get_text('error_occurred').format(type(e).__name__, str(e)))
                 logger.error(traceback.format_exc())
             else:
                 logger.error(get_text('error_occurred').format(type(e).__name__, str(e)))
 
 if __name__ == "__main__":
-    main(True)
+    VERBOSE = True
+    main()

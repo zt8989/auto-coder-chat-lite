@@ -1,0 +1,68 @@
+# basic hylang grammar
+
+## Bracket strings
+
+```hy
+(print #[["That's very kind of yuo [sic]" Tom wrote back.]])
+  ; "That's very kind of yuo [sic]" Tom wrote back.
+(print #[==[1 + 1 = 2]==])
+  ; 1 + 1 = 2
+```
+
+## macro(import #* forms) 
+
+```hy
+;; Import each of these modules.
+;; Python: import sys, os.path
+(import sys os.path)
+
+;; Import several names from a single module.
+;; Python: from os.path import exists, isdir as is_dir, isfile
+(import os.path [exists  isdir :as dir?  isfile])
+
+;; Import a module with an alias for the whole module.
+;; Python: import sys as systest
+(import sys :as systest)
+
+;; Import all objects from a module into the current namespace.
+;; Python: from sys import *
+(import sys *)
+
+;; You can list as many imports as you like of different types.
+;; Python:
+;;     from tests.resources import kwtest, function_with_a_dash
+;;     from os.path import exists, isdir as is_dir, isfile as is_file
+;;     import sys as systest
+;;     from math import *
+(import tests.resources [kwtest function-with-a-dash]
+        os.path [exists
+                 isdir :as dir?
+                 isfile :as file?]
+        sys :as systest
+        math *)
+```
+
+## macro(if test true-value false-value)
+
+```hy
+(if (has-money-left account)
+  (print "Let's go shopping!")
+  (print "Back to work."))
+```
+
+## macro(hy.core.macros.when test #* body)
+
+```hy
+(when panic
+  (log.write panic)
+  (print "Process returned:" panic.msg)
+  (return panic))
+```
+
+## macro(hy.core.macros.cond #* args)
+
+```hy
+(cond
+  condition1 result1
+  condition2 result2)
+```

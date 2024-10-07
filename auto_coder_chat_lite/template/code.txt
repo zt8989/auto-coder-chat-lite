@@ -1,5 +1,5 @@
 {%- if merge_type == "git_diff" -%}
-{% include "code_search_replace.txt" %}
+{% include "code_git_diff.txt" %}
 {%- endif %}
 {%- if merge_type == "search_replace" -%}
 {% include "code_search_replace.txt" %}

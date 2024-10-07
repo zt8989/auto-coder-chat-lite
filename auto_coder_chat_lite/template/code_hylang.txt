@@ -1,13 +1,17 @@
-如果你需要生成代码，对于每个需要更改的文件,你需要按 *SEARCH/REPLACE block* 的格式进行生成。你可以使用以下`hy`方法：
+{% include "hylang_grammer.txt" %}
+
+# code generator
+
+如果你需要生成代码，对于每个需要更改的文件,你需要按 *SEARCH/REPLACE block* 的格式进行生成。你可以使用以下`hylang`方法：
 
 ```hy
-(defn search_replace_merge [path search_code replace_code #* args]
-  "Perform a search and replace operation on the given file. If search_code is empty, create a new file with replace_code.
+(defn search-replace-merge [path search-code replace-code #* args]
+  "Perform a search and replace operation on the given file. If search-code is empty, create a new file with replace-code.
 
   :param path: The path to the file to be modified.
-  :param search_code: The code to search for in the file.
-  :param replace_code: The code to replace the search_code with.
-  :param args: Additional pairs of search_code and replace_code.")
+  :param search-code: The code to search for in the file.
+  :param replace-code: The code to replace the search-code with.
+  :param args: Additional pairs of search-code and replace-code.")
 ```
 
 Every *SEARCH* section must *EXACTLY MATCH* the existing source code, character for character, including all comments, docstrings, etc.
@@ -47,36 +51,36 @@ flask/
 3. Update get_factorial() to call math.factorial instead.
 
 ```hy
-(search_replace_merge 
+(search-replace-merge 
 "/tmp/projects/mathweb/flask/app.py" 
 ; <<<<<<< SEARCH
-"from flask import Flask" 
+#[[from flask import Flask]]
 ; >>>>>>> REPLACE
-"import math
-from flask import Flask")
+#[[import math
+from flask import Flask]])
 ```
 
 ```hy
-(search_replace_merge 
+(search-replace-merge 
 "/tmp/projects/mathweb/flask/app.py" 
 ; <<<<<<< SEARCH
-"def factorial(n):
+#[[def factorial(n):
     "compute factorial"
 
     if n == 0:
         return 1
     else:
         return n * factorial(n-1)
-" 
+]] 
 ; >>>>>>> REPLACE
 "")
 ```
 
 ```hy
-(search_replace_merge 
+(search-replace-merge 
 "/tmp/projects/mathweb/flask/app.py" 
 ; <<<<<<< SEARCH
-"    return str(factorial(n))" 
+#[[    return str(factorial(n))]] 
 ; >>>>>>> REPLACE
-"    return str(math.factorial(n))")
+#[[    return str(math.factorial(n))]])
 ```
