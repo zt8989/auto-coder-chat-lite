@@ -34,12 +34,17 @@ def init_project():
     else:
         with open(gitignore_path, "r", encoding='utf-8') as f:
             content = f.read()
+        line_ending = "\n"
+        if "\r\n" in content:
+            line_ending = "\r\n"
+        if not content.endswith(line_ending):
+            content += line_ending
         if f"{PROJECT_DIR_NAME}/" not in content:
-            with open(gitignore_path, "a", encoding='utf-8') as f:
-                f.write(f"{PROJECT_DIR_NAME}/\n")
+            content += f"{PROJECT_DIR_NAME}/{line_ending}"
         if "output.txt" not in content:
-            with open(gitignore_path, "a", encoding='utf-8') as f:
-                f.write("output.txt\n")
+            content += f"output.txt{line_ending}"
+        with open(gitignore_path, "w", encoding='utf-8') as f:
+            f.write(content)
 
 def get_all_file_names_in_project() -> List[str]:
     file_names = []
