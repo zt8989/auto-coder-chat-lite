@@ -6,6 +6,7 @@ import platform
 import traceback
 import argparse
 import git
+import re
 from jinja2 import Environment, FileSystemLoader
 
 from typing import List
@@ -204,7 +205,13 @@ def load_memory():
         memory["conf"][MERGE_TYPE] = MERGE_TYPE_SEARCH_REPLACE
     completer.update_current_files(memory["current_files"]["files"])
 
-def add_files(args: List[str]):
+def get_files_to_add(args: List[str]):
+    """
+    Retrieves the list of files to be added based on the provided arguments.
+
+    :param args: A list of file paths or patterns to be added.
+    :return: A list of file paths that are to be added.
+    """
     existing_files = memory["current_files"]["files"]
     matched_files = []
     
@@ -216,8 +223,6 @@ def add_files(args: List[str]):
             matched_files.extend(find_files_in_project([arg]))
     
     spec, final_exclude_dirs = get_exclude_spec()
-    
-    # 过滤文件
     files_to_add = []
     for f in matched_files:
         if f not in existing_files:
@@ -228,6 +233,10 @@ def add_files(args: List[str]):
             logger.info(f"File {f} does not contain any exclude directories.")
         if f not in existing_files and not spec.match_file(f) and not any(exclude_dir in f for exclude_dir in final_exclude_dirs):
             files_to_add.append(f)
+    return files_to_add
+
+def add_files(args: List[str]):
+    files_to_add = get_files_to_add(args)
     
     if files_to_add:
         memory["current_files"]["files"].extend(files_to_add)
@@ -374,6 +383,16 @@ def coding(query: str):
     files_code = "\n".join(
         [f"##File: {file}\n{read_file(file)}" for file in memory['current_files']['files'] if os.path.exists(file)]
     )
+
+    # Check if the query contains "@abc.fg" pattern
+    file_pattern = re.compile(r'@(\w+\.\w+)')
+    file_matches = file_pattern.findall(query)
+
+    for file_match in file_matches:
+        matched_files = get_files_to_add([file_match])
+        for file_path in matched_files:
+            if file_path not in memory['current_files']['files']:
+                files_code += f"\n##File: {file_path}\n{read_file(file_path)}"
 
     try:
         import pyperclip
