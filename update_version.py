@@ -2,13 +2,13 @@ import re
 import subprocess
 
 def update_version():
-    with open('setup.py', 'r') as file:
-        setup_content = file.read()
+    with open('pyproject.toml', 'r') as file:
+        toml_content = file.read()
 
     # 使用正则表达式查找版本号
-    version_match = re.search(r"version='(\d+\.\d+\.\d+)'", setup_content)
+    version_match = re.search(r'version = "(\d+\.\d+\.\d+)"', toml_content)
     if not version_match:
-        raise ValueError("Version number not found in setup.py")
+        raise ValueError("Version number not found in pyproject.toml")
 
     # 获取当前版本号
     current_version = version_match.group(1)
@@ -19,16 +19,16 @@ def update_version():
     new_version = f"{major}.{minor}.{patch}"
 
     # 替换版本号
-    updated_content = setup_content.replace(f"version='{current_version}'", f"version='{new_version}'")
+    updated_content = toml_content.replace(f'version = "{current_version}"', f'version = "{new_version}"')
 
-    with open('setup.py', 'w') as file:
+    with open('pyproject.toml', 'w') as file:
         file.write(updated_content)
 
     try:
         # 提交版本更新
         commit_message = f"🔖 chore(version): 更新版本至 {new_version}"
         try:
-            subprocess.run(['git', 'add', 'setup.py'], check=True)
+            subprocess.run(['git', 'add', 'pyproject.toml'], check=True)
             subprocess.run(['git', 'commit', '-m', commit_message], check=True)
             print(f"已提交版本更新: {commit_message}")
         except subprocess.CalledProcessError as e:
